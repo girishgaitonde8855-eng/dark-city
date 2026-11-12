@@ -809,24 +809,26 @@ function renderHud(data){
 function renderMMenuHome(){
   const p=state.data?.player || {};
   const server=state.data?.server || {};
-  // [view, icon, title, description, extraClass]
+  // [view, icon, title, description, extraClass, photo]
+  // Photos are the clean ai/ set (no baked-in titles) so they never fight the tile text.
   const modules=[
-    ['statisticsTab','📊','STATISTICS','Progress, licences, level and stats','wide'],
-    ['jobs','💼','JOBS','Work, earn and build your future',''],
-    ['achievement','🏆','ACHIEVEMENTS','Complete goals, earn rewards',''],
-    ['battlePass','🎖️','BATTLE PASS','Missions and season rewards',''],
-    ['familyMenu','👨‍👩‍👧','FAMILY','Build and manage your family',''],
-    ['organization','🛡️','FACTION','Join and lead a faction',''],
-    ['darkStore','🛒','DARK STORE','Exclusive items and vehicles',''],
-    ['realEstate','🏠','REAL ESTATE','Buy, sell and manage property',''],
-    ['business','🏪','BUSINESS','Grow your business empire',''],
-    ['prime','💎','PRIME','Premium perks and benefits',''],
-    ['referral','🤝','REFERRAL','Invite friends, earn rewards',''],
-    ['contactAdmin','🎧','SUPPORT','Contact admin, report issues',''],
-    ['settings','⚙️','SETTINGS','Customize your experience','']
+    ['statisticsTab','📊','STATISTICS','Progress, licences, level and stats','wide','m-menu/ai/profile.webp'],
+    ['jobs','💼','JOBS','Work, earn and build your future','','m-menu/ai/jobs.webp'],
+    ['achievement','🏆','ACHIEVEMENTS','Complete goals, earn rewards','','m-menu/ai/achievements.webp'],
+    ['battlePass','🎖️','BATTLE PASS','Missions and season rewards','','m-menu/ai/ranks.webp'],
+    ['familyMenu','👨‍👩‍👧','FAMILY','Build and manage your family','','m-menu/ai/family-members.webp'],
+    ['organization','🛡️','FACTION','Join and lead a faction','','m-menu/ai/faction-missions.webp'],
+    ['darkStore','🛒','DARK STORE','Exclusive items and vehicles','','m-menu/ai/store-zentorno.webp'],
+    ['realEstate','🏠','REAL ESTATE','Buy, sell and manage property','','m-menu/08_property.jpg'],
+    ['business','🏪','BUSINESS','Grow your business empire','','m-menu/ai/business-finance.webp'],
+    ['prime','💎','PRIME','Premium perks and benefits','','m-menu/ai/business-products.webp'],
+    ['referral','🤝','REFERRAL','Invite friends, earn rewards','','m-menu/ai/referral.webp'],
+    ['contactAdmin','🎧','SUPPORT','Contact admin, report issues','','m-menu/ai/admin-support.webp'],
+    ['settings','⚙️','SETTINGS','Customize your experience','','m-menu/ai/graphics-audio.webp']
   ];
   const cardHtml=modules.map((c,i)=>`
     <button type="button" class="pm-card ${c[4]}" style="--i:${i}" onclick="switchView('${c[0]}')">
+      <span class="pm-card-photo" aria-hidden="true" style="--ph:url('${asset(c[5])}')"></span>
       <span class="pm-card-ico">${c[1]}</span>
       <span class="pm-card-go">→</span>
       <span class="pm-card-txt"><b>${c[2]}</b><small>${c[3]}</small></span>
@@ -853,6 +855,7 @@ function renderMMenuHome(){
           </div>
         </section>
         <button type="button" class="pm-feature" onclick="switchView('dailyReward')">
+          <span class="pm-feature-photo" aria-hidden="true" style="--ph:url('${asset('m-menu/ai/daily-rewards.webp')}')"></span>
           <span class="pm-feature-glyph" aria-hidden="true">🎁</span>
           <small>ONLINE REWARDS</small><h2>Daily Reward</h2>
           <p>Stay online, claim your rewards and keep your streak alive.</p>

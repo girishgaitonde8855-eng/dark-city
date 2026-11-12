@@ -528,3 +528,50 @@ html,body{font-family:var(--pm-font)!important;color:var(--pm-text)}
   opacity:1!important;
 }
 #app .shell:not(.pm-off) .pm-corner:hover:after{border-color:var(--pm-accent)}
+
+/* ==========================================================================
+   HOME TILE PHOTOS
+   Full-bleed photo per tile (clean ai/ set, no baked-in titles). The photo is
+   bright at the top and fades to near-solid dark at the bottom, where the text
+   sits, so text and photo never compete.
+   ========================================================================== */
+.pm-card-photo,.pm-feature-photo{
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(6,7,10,.08) 0%,rgba(6,7,10,.18) 34%,rgba(6,7,10,.80) 70%,rgba(6,7,10,.97) 100%),
+    var(--ph) center/cover no-repeat;
+  transform:scale(1.02);
+  transition:transform .7s var(--pm-ease),filter .4s;
+}
+.pm-card:hover .pm-card-photo,.pm-feature:hover .pm-feature-photo{transform:scale(1.09);filter:saturate(1.12) brightness(1.06)}
+.pm-card:before{z-index:1}
+.pm-card .pm-card-ico,.pm-card .pm-card-go,.pm-card .pm-card-txt{z-index:2}
+.pm-card .pm-card-ico{
+  background:rgba(8,9,13,.58)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-color:rgba(255,209,102,.38)!important;box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+.pm-card .pm-card-go{background:rgba(8,9,13,.55);color:var(--pm-text-2);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.pm-card .pm-card-txt b{color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.8)}
+#app .pm-home .pm-card .pm-card-txt small{color:#d8d4cc;text-shadow:0 1px 8px rgba(0,0,0,.9)}
+.pm-card .pm-card-ghost{display:none}
+
+/* Daily Reward feature card */
+.pm-feature .pm-feature-photo{
+  background:
+    linear-gradient(180deg,rgba(6,7,10,.12) 0%,rgba(6,7,10,.30) 38%,rgba(6,7,10,.86) 78%,rgba(6,7,10,.97) 100%),
+    radial-gradient(420px 220px at 100% 0%,rgba(255,159,28,.28),transparent 65%),
+    var(--ph) center/cover no-repeat;
+}
+.pm-feature>*:not(.pm-feature-photo){position:relative;z-index:2}
+.pm-feature .pm-feature-glyph{position:absolute;display:none}
+.pm-feature h2{text-shadow:0 2px 12px rgba(0,0,0,.8)}
+.pm-feature p{color:#e2ded6;text-shadow:0 1px 8px rgba(0,0,0,.9)}
+
+/* Daily Reward feature card: text sits on the left, so the photo is darkened from
+   the left (solid behind the text) and stays bright on the right where it is only art. */
+#app .pm-home .pm-feature .pm-feature-photo{
+  background:
+    linear-gradient(90deg,rgba(8,9,13,.97) 0%,rgba(8,9,13,.90) 42%,rgba(8,9,13,.45) 72%,rgba(8,9,13,.12) 100%),
+    linear-gradient(180deg,rgba(8,9,13,.25) 0%,rgba(8,9,13,.55) 100%),
+    var(--ph) right center/cover no-repeat;
+}
