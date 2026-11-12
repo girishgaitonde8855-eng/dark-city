@@ -1,0 +1,90 @@
+{
+  "familyMenu": [
+    "m-menu/family/overview.jpg",
+    "m-menu/family/members.jpg",
+    "m-menu/family/ranks.jpg",
+    "m-menu/family/territory.jpg",
+    "m-menu/family/storage.jpg",
+    "m-menu/family/vehicles.jpg",
+    "m-menu/family/logs.jpg",
+    "m-menu/family/settings.jpg"
+  ],
+  "organization": [
+    "m-menu/faction/overview.jpg",
+    "m-menu/faction/members.jpg",
+    "m-menu/faction/ranks.jpg",
+    "m-menu/faction/missions.jpg",
+    "m-menu/faction/territory.jpg",
+    "m-menu/faction/vehicles.jpg",
+    "m-menu/faction/storage.jpg",
+    "m-menu/faction/logs.jpg",
+    "m-menu/faction/settings.jpg"
+  ],
+  "jobs": [
+    "m-menu/jobs/overview.jpg",
+    "m-menu/jobs/available.jpg",
+    "m-menu/jobs/active.jpg",
+    "m-menu/jobs/progress.jpg",
+    "m-menu/jobs/rewards.jpg",
+    "m-menu/jobs/history.jpg"
+  ],
+  "business": [
+    "m-menu/business/overview.jpg",
+    "m-menu/business/employees.jpg",
+    "m-menu/business/finance.jpg",
+    "m-menu/business/products.jpg",
+    "m-menu/business/orders.jpg",
+    "m-menu/business/storage.jpg",
+    "m-menu/business/upgrades.jpg",
+    "m-menu/business/logs.jpg",
+    "m-menu/business/settings.jpg"
+  ],
+  "settings": [
+    "m-menu/settings/overview.jpg",
+    "m-menu/settings/account.jpg",
+    "m-menu/settings/controls.jpg",
+    "m-menu/settings/graphics.jpg",
+    "m-menu/settings/audio.jpg",
+    "m-menu/settings/hud.jpg",
+    "m-menu/settings/privacy.jpg",
+    "m-menu/settings/notifications.jpg"
+  ],
+  "dailyReward": [
+    "m-menu/daily-reward/calendar.jpg",
+    "m-menu/daily-reward/daily.jpg",
+    "m-menu/daily-reward/streak.jpg",
+    "m-menu/daily-reward/rewards.jpg",
+    "m-menu/daily-reward/bonus.jpg",
+    "m-menu/daily-reward/history.jpg"
+  ],
+  "achievement": [
+    "m-menu/achievement/overview.jpg",
+    "m-menu/achievement/categories.jpg",
+    "m-menu/achievement/progress.jpg",
+    "m-menu/achievement/completed.jpg",
+    "m-menu/achievement/rewards.jpg",
+    "m-menu/achievement/milestones.jpg"
+  ],
+  "referral": [
+    "m-menu/referral/overview.jpg",
+    "m-menu/referral/invite.jpg",
+    "m-menu/referral/rewards.jpg",
+    "m-menu/referral/levels.jpg",
+    "m-menu/referral/history.jpg",
+    "m-menu/referral/leaderboard.jpg"
+  ],
+  "statisticsTab": [
+    "m-menu/statistics/cash.jpg",
+    "m-menu/statistics/bank.jpg",
+    "m-menu/statistics/player-id.jpg",
+    "m-menu/statistics/job.jpg",
+    "m-menu/statistics/rank.jpg",
+    "m-menu/statistics/reputation.jpg",
+    "m-menu/statistics/driving-licence.jpg",
+    "m-menu/statistics/boat-licence.jpg",
+    "m-menu/statistics/helicopter-licence.jpg",
+    "m-menu/statistics/progress.jpg",
+    "m-menu/statistics/xp.jpg",
+    "m-menu/statistics/statistics.jpg"
+  ]
+}

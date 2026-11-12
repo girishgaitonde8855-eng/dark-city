@@ -1,0 +1,249 @@
+
+/* ============================================================
+   DARK CITY RP — LUXURY RP M-MENU V1
+   Visual-only layer. Existing JS/NUI actions remain untouched.
+   ============================================================ */
+:root{
+  --lux-bg:#070809;
+  --lux-panel:rgba(16,17,19,.88);
+  --lux-gold:#d7b56d;
+  --lux-gold2:#f0d89b;
+  --lux-white:#f5f3ed;
+  --lux-muted:#a9a49a;
+  --lux-red:#a7192e;
+}
+
+/* Full luxury shell */
+#app{
+  background:
+    linear-gradient(115deg,rgba(3,4,5,.88),rgba(9,9,10,.58)),
+    url("img/newauth/bg-home.jpg") center/cover fixed !important;
+}
+.shell{
+  left:2.2vw !important;top:2.2vh !important;width:95.6vw !important;height:95.6vh !important;
+  grid-template-columns:220px 1fr !important;
+  border:1px solid rgba(215,181,109,.24) !important;
+  border-radius:20px !important;
+  background:rgba(6,7,8,.86) !important;
+  box-shadow:0 30px 100px rgba(0,0,0,.75),0 0 50px rgba(215,181,109,.06) !important;
+  backdrop-filter:blur(20px) saturate(.9) !important;
+}
+.sidebar{
+  background:
+    linear-gradient(180deg,rgba(7,8,9,.78),rgba(5,6,7,.97)),
+    url("img/optionsMenu/bg.png") center/cover !important;
+  border-right:1px solid rgba(215,181,109,.13) !important;
+}
+.brand{border-bottom:1px solid rgba(215,181,109,.14)!important}
+.logo{
+  background:linear-gradient(145deg,#e8c981,#8d6b32)!important;
+  color:#15110a!important;box-shadow:0 8px 25px rgba(215,181,109,.16)!important;
+}
+.brand h2{color:#f3ead5!important;letter-spacing:1.5px!important}
+.brand p{color:#8d8069!important}
+
+/* Premium nav */
+#nav{gap:5px!important}
+.navbtn{
+  min-height:50px!important;border:1px solid transparent!important;
+  background:rgba(255,255,255,.018)!important;border-radius:12px!important;
+}
+.navbtn:before{opacity:.10!important;background-image:url("img/menuperson/bg.png")!important}
+.navbtn .navicon{
+  background:rgba(215,181,109,.06)!important;border-color:rgba(215,181,109,.12)!important;
+  color:#cdbb92!important;
+}
+.navbtn .navcopy b{color:#ded8cb!important}
+.navbtn .navcopy small{color:#77746e!important}
+.navbtn:hover{transform:translateX(4px)!important;border-color:rgba(215,181,109,.28)!important;background:rgba(215,181,109,.07)!important}
+.navbtn.active{
+  background:linear-gradient(100deg,rgba(215,181,109,.16),rgba(215,181,109,.025))!important;
+  border-color:rgba(215,181,109,.38)!important;
+  box-shadow:inset 3px 0 #d7b56d,0 10px 28px rgba(0,0,0,.22)!important;
+}
+.navbtn.active .navicon{background:linear-gradient(145deg,#e4c67f,#927039)!important;color:#17120a!important}
+
+/* Main */
+.main{background:#08090a!important}
+.main:before{opacity:.18!important;filter:grayscale(.25) contrast(1.12)!important}
+.main:after{background:linear-gradient(90deg,rgba(3,4,5,.85),rgba(5,5,6,.34),rgba(3,4,5,.80))!important}
+#content{padding:16px 18px 18px!important}
+
+/* Header */
+.title{
+  min-height:74px!important;border-radius:15px!important;margin-bottom:14px!important;
+  background:linear-gradient(105deg,rgba(16,17,18,.94),rgba(13,13,14,.72))!important;
+  border:1px solid rgba(215,181,109,.19)!important;
+  box-shadow:0 15px 40px rgba(0,0,0,.35),inset 0 1px rgba(255,255,255,.035)!important;
+}
+.page-icon{
+  background:linear-gradient(145deg,#e4c67f,#8f6c35)!important;color:#17120b!important;
+  box-shadow:0 0 24px rgba(215,181,109,.12)!important;
+}
+.eyebrow{color:#d7b56d!important;letter-spacing:3px!important}
+.title h1{color:#f1ede4!important;font-size:28px!important;letter-spacing:1.4px!important}
+.subtitle{color:#87837b!important}
+
+/* ALL cards: image-first */
+.r-card,.premium-tile,.setting-card,.fam3-panel,.org-card,.store-v2-card,
+.achievement-card,.bp-reward-card,.bp-mission-card,.bp-history-card,
+.ref-v1-reward-card,.prime2-panel,.ref-v1-list-panel,.ref-v1-stats,
+.job-premium-card,.job-progress-card,.mini-stat,.licence-document{
+  position:relative!important;overflow:hidden!important;
+  background:rgba(9,10,11,.82)!important;
+  border:1px solid rgba(215,181,109,.16)!important;
+  border-radius:15px!important;
+  box-shadow:0 14px 38px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.035)!important;
+  transition:transform .28s ease,border-color .28s ease,box-shadow .28s ease!important;
+}
+.r-card:hover,.premium-tile:hover,.setting-card:hover,.fam3-panel:hover,.org-card:hover,
+.store-v2-card:hover,.achievement-card:hover,.bp-reward-card:hover,.bp-mission-card:hover,
+.bp-history-card:hover,.ref-v1-reward-card:hover,.prime2-panel:hover,.ref-v1-list-panel:hover,
+.ref-v1-stats:hover,.job-premium-card:hover,.job-progress-card:hover,.mini-stat:hover,.licence-document:hover{
+  transform:translateY(-2px)!important;
+  border-color:rgba(215,181,109,.38)!important;
+  box-shadow:0 20px 50px rgba(0,0,0,.48),0 0 28px rgba(215,181,109,.06)!important;
+}
+
+/* Image layer is deliberately strong and large */
+.r-card:before,.premium-tile:before,.setting-card:before,.fam3-panel:before,.org-card:before,
+.store-v2-card:before,.achievement-card:before,.bp-reward-card:before,.bp-mission-card:before,
+.bp-history-card:before,.ref-v1-reward-card:before,.prime2-panel:before,.ref-v1-list-panel:before,
+.ref-v1-stats:before,.job-premium-card:before,.job-progress-card:before,.mini-stat:before,.licence-document:before{
+  content:""!important;position:absolute!important;inset:0!important;z-index:0!important;
+  background-image:var(--lux-img,url("img/newauth/bg-home.jpg"))!important;
+  background-size:cover!important;background-position:center!important;
+  opacity:.56!important;transform:scale(1.015)!important;
+  transition:transform .5s ease,opacity .35s ease!important;
+}
+.r-card:hover:before,.premium-tile:hover:before,.setting-card:hover:before,.fam3-panel:hover:before,
+.org-card:hover:before,.store-v2-card:hover:before,.achievement-card:hover:before,.bp-reward-card:hover:before,
+.bp-mission-card:hover:before,.bp-history-card:hover:before,.ref-v1-reward-card:hover:before,
+.prime2-panel:hover:before,.ref-v1-list-panel:hover:before,.ref-v1-stats:hover:before,
+.job-premium-card:hover:before,.job-progress-card:hover:before,.mini-stat:hover:before,.licence-document:hover:before{
+  transform:scale(1.07)!important;opacity:.70!important;
+}
+.r-card:after,.premium-tile:after,.setting-card:after,.fam3-panel:after,.org-card:after,
+.store-v2-card:after,.achievement-card:after,.bp-reward-card:after,.bp-mission-card:after,
+.bp-history-card:after,.ref-v1-reward-card:after,.prime2-panel:after,.ref-v1-list-panel:after,
+.ref-v1-stats:after,.job-premium-card:after,.job-progress-card:after,.mini-stat:after,.licence-document:after{
+  content:""!important;position:absolute!important;inset:0!important;z-index:0!important;
+  background:linear-gradient(90deg,rgba(5,6,7,.93) 0%,rgba(5,6,7,.66) 48%,rgba(5,6,7,.25) 100%)!important;
+  pointer-events:none!important;
+}
+.r-card>*,.premium-tile>*,.setting-card>*,.fam3-panel>*,.org-card>*,.store-v2-card>*,
+.achievement-card>*,.bp-reward-card>*,.bp-mission-card>*,.bp-history-card>*,
+.ref-v1-reward-card>*,.prime2-panel>*,.ref-v1-list-panel>*,.ref-v1-stats>*,
+.job-premium-card>*,.job-progress-card>*,.mini-stat>*,.licence-document>*{position:relative!important;z-index:2!important}
+
+/* Big media panels */
+.media{
+  min-height:210px!important;height:210px!important;
+  margin:-1px -1px 14px!important;border-radius:14px 14px 9px 9px!important;
+  background-size:cover!important;background-position:center!important;
+  box-shadow:inset 0 -100px 110px rgba(0,0,0,.72)!important;
+}
+.media.wide{height:175px!important}
+.media.hero-img{height:310px!important}
+
+/* Profile/statistics: oversized hero */
+#content[data-view="statisticsTab"] .profile-panel{
+  --lux-img:url("img/newauth/bg-home.jpg");
+  min-height:250px!important;
+}
+#content[data-view="statisticsTab"] .xp-level-panel{--lux-img:url("img/newhud/level-up-bg.png")}
+#content[data-view="statisticsTab"] .mini-stat{min-height:104px!important}
+#content[data-view="statisticsTab"] .mini-stat:nth-child(1){--lux-img:url("img/optionsMenu/statisticsTab/backs/bank.png")}
+#content[data-view="statisticsTab"] .mini-stat:nth-child(2){--lux-img:url("img/bank/bg-card.png")}
+#content[data-view="statisticsTab"] .mini-stat:nth-child(3){--lux-img:url("img/passport/main_bg.png")}
+#content[data-view="statisticsTab"] .mini-stat:nth-child(4){--lux-img:url("img/optionsMenu/informationTab/works/loader.png")}
+#content[data-view="statisticsTab"] .mini-stat:nth-child(5){--lux-img:url("img/optionsMenu/statisticsTab/backs/family.png")}
+#content[data-view="statisticsTab"] .mini-stat:nth-child(6){--lux-img:url("img/optionsMenu/statisticsTab/backs/family_after.png")}
+
+/* Every section gets its own hero image */
+#content[data-view="darkStore"]{--lux-img:url("img/newDonateShop/header_bg.svg")}
+#content[data-view="familyMenu"]{--lux-img:url("img/familyMenu/bg.png")}
+#content[data-view="organization"]{--lux-img:url("img/optionsMenu/statisticsTab/backs/family.png")}
+#content[data-view="jobs"]{--lux-img:url("img/truckersMenu/bg.png")}
+#content[data-view="realEstate"]{--lux-img:url("img/homeMenu/bg.png")}
+#content[data-view="business"]{--lux-img:url("img/businessPurchase/layer.png")}
+#content[data-view="settings"]{--lux-img:url("img/optionsMenu/bg.png")}
+#content[data-view="battlePass"]{--lux-img:url("img/battlegroundReg/bg.png")}
+#content[data-view="dailyReward"]{--lux-img:url("img/newDonateShop/header_bg.svg")}
+#content[data-view="achievement"]{--lux-img:url("img/menuperson/achievements/achievements-item.png")}
+#content[data-view="contactAdmin"]{--lux-img:url("img/menuperson/report/chat-bg.png")}
+#content[data-view="referral"]{--lux-img:url("img/newauth/bg-home.jpg")}
+#content[data-view="prime"]{--lux-img:url("img/newDonateShop/header_bg.svg")}
+
+/* Give section containers a large cinematic backdrop without changing markup */
+#content[data-view] .page-intro,
+#content[data-view] .settings-hero-stats,
+#content[data-view] .bp-pass-status,
+#content[data-view] .prime2-status{
+  border:1px solid rgba(215,181,109,.20)!important;
+  background-image:linear-gradient(90deg,rgba(5,6,7,.94),rgba(5,6,7,.55),rgba(5,6,7,.32)),var(--lux-img)!important;
+  background-size:cover!important;background-position:center!important;
+}
+
+/* Gold premium controls, while preserving onclick/functionality */
+.btn,.action-btn,.tab-btn{
+  border-color:rgba(215,181,109,.22)!important;
+}
+.btn:hover,.action-btn:hover,.tab-btn:hover{
+  border-color:rgba(215,181,109,.50)!important;
+  box-shadow:0 0 22px rgba(215,181,109,.08)!important;
+}
+
+
+/* ============================================================
+   LUXURY RP — DIRECT IMAGE LAYERS
+   Uses real DOM image layers so artwork is visible even when
+   legacy card background rules override pseudo-elements.
+   ============================================================ */
+.lux-image-card{position:relative!important;overflow:hidden!important}
+.lux-image-layer{
+  position:absolute!important;inset:0!important;z-index:0!important;
+  background-size:cover!important;background-position:center!important;
+  background-repeat:no-repeat!important;
+  opacity:.72!important;
+  transform:scale(1.015)!important;
+  filter:saturate(.92) contrast(1.05)!important;
+  transition:transform .5s ease,opacity .35s ease,filter .35s ease!important;
+  pointer-events:none!important;
+}
+.lux-image-card:after{
+  content:""!important;position:absolute!important;inset:0!important;z-index:1!important;
+  background:
+    linear-gradient(90deg,rgba(4,5,6,.95) 0%,rgba(4,5,6,.73) 42%,rgba(4,5,6,.30) 100%),
+    linear-gradient(0deg,rgba(4,5,6,.72),transparent 55%)!important;
+  pointer-events:none!important;
+}
+.lux-image-card:hover .lux-image-layer{
+  transform:scale(1.075)!important;opacity:.88!important;filter:saturate(1.05) contrast(1.08)!important;
+}
+.lux-image-card>*:not(.lux-image-layer){position:relative!important;z-index:3!important}
+
+/* Make cards physically bigger so artwork reads as artwork, not a tiny texture. */
+.stats-grid-premium{gap:12px!important}
+.clean-info-grid .mini-stat{min-height:112px!important}
+.job-xp-row{min-height:82px!important}
+.profile-panel{min-height:235px!important}
+.xp-level-panel{min-height:180px!important}
+
+/* Premium image strip at top of information cards */
+.lux-image-card .mini-ico{
+  border:1px solid rgba(215,181,109,.30)!important;
+  background:rgba(0,0,0,.42)!important;
+  box-shadow:0 8px 25px rgba(0,0,0,.28)!important;
+}
+.lux-image-card h2,.lux-image-card h3,.lux-image-card b{color:#f3eee3!important}
+.lux-image-card span,.lux-image-card p,.lux-image-card small{color:#b7b0a4!important}
+
+/* Dedicated large hero image feel */
+#content[data-view="statisticsTab"] .profile-panel .lux-image-layer{
+  background-position:center 28%!important;
+  opacity:.82!important;
+}
+#content[data-view="statisticsTab"] .xp-level-panel .lux-image-layer{
+  opacity:.62!important;background-position:center!important;
+}

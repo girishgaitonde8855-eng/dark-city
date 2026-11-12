@@ -1,0 +1,167 @@
+
+/* ============================================================
+   DARK CITY RP - M MENU PREMIUM IMAGE LAYER
+   Visual-only patch. No JS/gameplay behavior is changed.
+   ============================================================ */
+:root{
+  --premium-blue:#19a8ff;
+  --premium-red:#ff3048;
+  --premium-green:#27f078;
+  --premium-bg:#070b11;
+}
+#app{
+  background:
+    linear-gradient(90deg,rgba(2,6,12,.96) 0%,rgba(2,6,12,.72) 46%,rgba(2,6,12,.90) 100%),
+    url("img/menuPremium/city.jpg") center/cover fixed !important;
+}
+#app:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 70% 20%,rgba(18,157,255,.18),transparent 32%),
+             radial-gradient(circle at 20% 80%,rgba(255,38,62,.10),transparent 35%);
+}
+.shell{
+  background:rgba(3,7,13,.82)!important;
+  border-color:rgba(28,173,255,.38)!important;
+  box-shadow:0 25px 80px rgba(0,0,0,.65),0 0 45px rgba(0,148,255,.12)!important;
+}
+.sidebar{
+  background:linear-gradient(180deg,rgba(5,13,23,.94),rgba(2,6,12,.97))!important;
+  border-right-color:rgba(27,166,255,.20)!important;
+}
+.brand{
+  background:linear-gradient(135deg,rgba(255,255,255,.035),rgba(0,0,0,.18));
+  border-radius:14px;padding:12px!important;
+}
+.logo{box-shadow:0 0 24px rgba(255,40,60,.25)!important}
+.navbtn{
+  position:relative;overflow:hidden;
+  border:1px solid rgba(255,255,255,.045)!important;
+  background:linear-gradient(100deg,rgba(255,255,255,.035),rgba(255,255,255,.012))!important;
+  transition:transform .18s,background .18s,border-color .18s,box-shadow .18s!important;
+}
+.navbtn:after{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(20,158,255,.10),transparent 70%);
+  opacity:0;transition:.18s;
+}
+.navbtn:hover,.navbtn.active{
+  transform:translateX(3px);
+  border-color:rgba(20,168,255,.55)!important;
+  background:linear-gradient(100deg,rgba(17,143,235,.22),rgba(255,255,255,.025))!important;
+  box-shadow:0 8px 24px rgba(0,125,255,.12),inset 3px 0 0 #16a9ff!important;
+}
+.navbtn:hover:after,.navbtn.active:after{opacity:1}
+
+/* universal image-backed panels */
+.r-card,.premium-tile,.fam3-panel,.org-card,.job-premium-card,
+.store-v2-card,.setting-card,.bp-reward-card,.bp-mission-card,
+.bp-history-card,.prime2-panel,.ref-v1-reward-card,.ref-v1-list-panel,
+.ref-v1-rules,.flow-card,.licence-document,.mini-stat{
+  position:relative;overflow:hidden;
+  background-color:rgba(7,12,20,.82)!important;
+  border-color:rgba(55,150,210,.20)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 10px 28px rgba(0,0,0,.18);
+}
+.r-card:before,.premium-tile:before,.fam3-panel:before,.org-card:before,
+.job-premium-card:before,.store-v2-card:before,.setting-card:before,
+.bp-reward-card:before,.bp-mission-card:before,.bp-history-card:before,
+.prime2-panel:before,.ref-v1-reward-card:before,.ref-v1-list-panel:before,
+.ref-v1-rules:before,.flow-card:before,.licence-document:before,.mini-stat:before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-position:center;background-size:cover;
+  opacity:.27;filter:saturate(1.15) contrast(1.08);
+  transition:transform .35s,opacity .25s;
+}
+.r-card:hover:before,.premium-tile:hover:before,.fam3-panel:hover:before,
+.org-card:hover:before,.job-premium-card:hover:before,.store-v2-card:hover:before,
+.setting-card:hover:before,.bp-reward-card:hover:before,.bp-mission-card:hover:before,
+.prime2-panel:hover:before,.ref-v1-reward-card:hover:before,.licence-document:hover:before,
+.mini-stat:hover:before{transform:scale(1.055);opacity:.36}
+.r-card:after,.premium-tile:after,.fam3-panel:after,.org-card:after,
+.job-premium-card:after,.store-v2-card:after,.setting-card:after,
+.bp-reward-card:after,.bp-mission-card:after,.bp-history-card:after,
+.prime2-panel:after,.ref-v1-reward-card:after,.ref-v1-list-panel:after,
+.ref-v1-rules:after,.flow-card:after,.licence-document:after,.mini-stat:after{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(4,8,14,.94) 0%,rgba(4,8,14,.68) 48%,rgba(4,8,14,.80) 100%);
+}
+.r-card > *, .premium-tile > *, .fam3-panel > *, .org-card > *,
+.job-premium-card > *, .store-v2-card > *, .setting-card > *,
+.bp-reward-card > *, .bp-mission-card > *, .bp-history-card > *,
+.prime2-panel > *, .ref-v1-reward-card > *, .ref-v1-list-panel > *,
+.ref-v1-rules > *, .flow-card > *, .licence-document > *, .mini-stat > *{
+  position:relative;z-index:1;
+}
+
+/* section-specific art */
+.profile-panel:before,.hero-overview:before,.clean-profile:before{background-image:url("img/menuPremium/profile.jpg")}
+.xp-level-panel:before{background-image:url("img/menuPremium/city.jpg")}
+.stats-grid-premium .mini-stat:nth-child(1):before{background-image:url("img/menuPremium/store.jpg")}
+.stats-grid-premium .mini-stat:nth-child(2):before{background-image:url("img/menuPremium/faction.jpg")}
+.stats-grid-premium .mini-stat:nth-child(3):before{background-image:url("img/menuPremium/profile.jpg")}
+.stats-grid-premium .mini-stat:nth-child(4):before{background-image:url("img/menuPremium/jobs.jpg")}
+.stats-grid-premium .mini-stat:nth-child(5):before{background-image:url("img/menuPremium/faction.jpg")}
+.stats-grid-premium .mini-stat:nth-child(6):before{background-image:url("img/menuPremium/family.jpg")}
+
+.jobs-board .job-premium-card:before{background-image:url("img/menuPremium/jobs.jpg")}
+.store-v2-card:before,.store-v2-hero:before{background-image:url("img/menuPremium/store.jpg")}
+.fam3-panel:before,.fam3-property-card:before{background-image:url("img/menuPremium/family.jpg")}
+.org-card:before{background-image:url("img/menuPremium/faction.jpg")}
+.prime2-panel:before,.ref-v1-reward-card:before{background-image:url("img/menuPremium/city.jpg")}
+.ref-v1-list-panel:before,.ref-v1-rules:before{background-image:url("img/menuPremium/profile.jpg")}
+.setting-card:before{background-image:url("img/menuPremium/city.jpg")}
+.bp-reward-card:before,.bp-mission-card:before,.bp-history-card:before{background-image:url("img/menuPremium/faction.jpg")}
+.flow-card:before{background-image:url("img/menuPremium/city.jpg")}
+.licence-document:before{background-image:url("img/menuPremium/news.jpg")}
+
+/* stronger hero imagery */
+.store-v2-hero,.bp-hero,.fam3-hero,.ref-v1-hero,.settings-hero-v16{
+  position:relative;overflow:hidden;
+}
+.store-v2-hero:before,.bp-hero:before,.fam3-hero:before,
+.ref-v1-hero:before,.settings-hero-v16:before{
+  content:"";position:absolute;inset:0;z-index:0;
+  background:url("img/menuPremium/news.jpg") center/cover;
+  opacity:.34;filter:saturate(1.2);
+}
+.store-v2-hero:after,.bp-hero:after,.fam3-hero:after,
+.ref-v1-hero:after,.settings-hero-v16:after{
+  content:"";position:absolute;inset:0;z-index:0;
+  background:linear-gradient(90deg,rgba(3,7,13,.96),rgba(3,7,13,.55),rgba(3,7,13,.75));
+  pointer-events:none;
+}
+.store-v2-hero>*,.bp-hero>*,.fam3-hero>*,.ref-v1-hero>*,.settings-hero-v16>*{position:relative;z-index:1}
+
+/* top/page decoration */
+.main:before{
+  opacity:.24!important;
+  background-image:var(--page-bg),url("img/menuPremium/city.jpg")!important;
+}
+.section-head{
+  position:relative;
+}
+.section-head:after{
+  content:"";height:1px;flex:1;margin-left:14px;
+  background:linear-gradient(90deg,rgba(20,164,255,.45),transparent);
+}
+
+/* image strip for content cards */
+.card-pad,.premium-tile-copy,.job-info,.job-actions,.job-inline-stats,
+.store-v2-panel,.prime2-panel-head,.setting-card-head{
+  position:relative;z-index:2;
+}
+
+/* premium glow accents */
+.r-card:hover,.premium-tile:hover,.fam3-panel:hover,.org-card:hover,
+.job-premium-card:hover,.store-v2-card:hover,.setting-card:hover,
+.bp-reward-card:hover,.prime2-panel:hover,.licence-document:hover{
+  border-color:rgba(22,167,255,.42)!important;
+  box-shadow:0 12px 35px rgba(0,0,0,.28),0 0 22px rgba(10,145,255,.08);
+}
+
+/* don't let decorative layer block clicks */
+*:before,*:after{pointer-events:none}
+button,a,input,select,textarea{position:relative;z-index:5}
+@media(max-width:1200px){
+  .shell{left:3vw!important;width:94vw!important}
+}

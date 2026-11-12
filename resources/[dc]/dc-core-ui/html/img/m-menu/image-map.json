@@ -1,0 +1,89 @@
+{
+  "statisticsTab": [
+    "01_city.jpg",
+    "02_bank.jpg",
+    "03_cars.jpg",
+    "04_family.jpg",
+    "05_jobs.jpg",
+    "11_achievement.jpg"
+  ],
+  "darkStore": [
+    "09_store.jpg",
+    "13_prime.jpg",
+    "03_cars.jpg"
+  ],
+  "familyMenu": [
+    "04_family.jpg",
+    "01_city.jpg",
+    "20_nightlife.jpg"
+  ],
+  "organization": [
+    "06_organization.jpg",
+    "07_business.jpg",
+    "01_city.jpg"
+  ],
+  "jobs": [
+    "05_jobs.jpg",
+    "03_cars.jpg",
+    "21_desert.jpg"
+  ],
+  "realEstate": [
+    "08_property.jpg",
+    "01_city.jpg",
+    "19_garage.jpg"
+  ],
+  "business": [
+    "07_business.jpg",
+    "01_city.jpg",
+    "20_nightlife.jpg"
+  ],
+  "settings": [
+    "14_settings.jpg",
+    "15_customization.jpg",
+    "01_city.jpg"
+  ],
+  "battlePass": [
+    "10_battlepass.jpg",
+    "11_achievement.jpg",
+    "01_city.jpg"
+  ],
+  "dailyReward": [
+    "09_store.jpg",
+    "13_prime.jpg",
+    "02_bank.jpg"
+  ],
+  "achievement": [
+    "11_achievement.jpg",
+    "10_battlepass.jpg",
+    "01_city.jpg"
+  ],
+  "contactAdmin": [
+    "16_admin.jpg",
+    "01_city.jpg",
+    "17_hospital.jpg"
+  ],
+  "referral": [
+    "12_referral.jpg",
+    "04_family.jpg",
+    "01_city.jpg"
+  ],
+  "prime": [
+    "13_prime.jpg",
+    "09_store.jpg",
+    "03_cars.jpg"
+  ],
+  "customization": [
+    "15_customization.jpg",
+    "03_cars.jpg"
+  ],
+  "auth": [
+    "01_city.jpg",
+    "18_airport.jpg"
+  ],
+  "spawnSelect": [
+    "23_spawn.jpg",
+    "18_airport.jpg",
+    "21_desert.jpg",
+    "22_paleto.jpg"
+  ]
+}

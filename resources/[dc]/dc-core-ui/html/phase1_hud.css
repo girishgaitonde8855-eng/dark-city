@@ -1,0 +1,302 @@
+#hud{position:fixed!important;inset:0!important;pointer-events:none!important;z-index:50000!important;overflow:hidden!important;font-family:Arial,Helvetica,sans-serif!important}
+#hud.hidden{display:none!important}.hidden{display:none!important}
+.p1hud{position:absolute;inset:0;color:#fff;text-shadow:0 0 8px rgba(0,0,0,.84);font-weight:700;user-select:none;transform:scale(var(--hud-scale,1));transform-origin:center center;transition:transform .18s ease}
+.p1-right{position:absolute;top:1vh;right:1.2vw;width:22rem;display:flex;flex-direction:column;align-items:flex-end}
+.p1-brand{display:flex;align-items:flex-start;gap:.75rem;justify-content:flex-end}.p1-brand img{width:2.65rem;height:2.95rem;object-fit:contain}.p1-brand-copy{display:flex;flex-direction:column;align-items:flex-end;line-height:1}.p1-brand-copy strong{font-size:1.5rem;letter-spacing:.38em;margin-right:-.38em;font-weight:900}.p1-brand-copy span{font-size:.84rem;letter-spacing:.64em;margin-right:-.64em;color:rgba(255,255,255,.68);margin-top:.32rem}
+.p1-info-row{display:flex;align-items:center;gap:1.2rem;margin-top:.45rem}.p1-info>div{display:flex;align-items:center;justify-content:flex-end;gap:.32rem}.p1-info img{width:.85rem;height:.85rem;object-fit:contain;opacity:.95}.p1-info b{font-size:.88rem}.p1-info>span{display:block;text-align:right;font-size:.55rem;line-height:.75rem;color:rgba(255,255,255,.52);text-transform:uppercase;letter-spacing:.04em}
+.p1-wanted{height:1.1rem;display:flex;gap:.18rem;margin-top:.45rem}.p1-wanted svg{width:1rem;height:1rem;filter:drop-shadow(0 0 5px rgba(254,42,42,.24))}
+.p1-money-wrap{position:relative;margin-top:.45rem;display:flex;flex-direction:column;align-items:flex-end}.p1-money{display:flex;align-items:center;gap:.45rem}.p1-money span{font-size:1.55rem;line-height:1.7rem}.p1-money img{width:1.3rem;height:1.3rem}.p1-bank{display:flex;align-items:center;gap:.5rem;margin-top:.12rem}.p1-bank span{font-size:.55rem;letter-spacing:.14em;color:rgba(255,255,255,.48)}.p1-bank b{font-size:.9rem;color:#dbe8f2}.p1-delta{position:absolute;right:1.75rem;top:3.1rem;font-size:.85rem;opacity:0;transform:translateY(-4px);transition:.2s ease;white-space:nowrap}.p1-delta.show{opacity:1;transform:translateY(0)}.p1-delta.plus{color:#b6d300}.p1-delta.minus{color:#fff}
+.p1-ammo{display:flex;align-items:center;gap:.5rem;margin-top:.6rem}.p1-ammo span{font-size:.9rem;color:rgba(255,255,255,.62)}.p1-ammo b{font-size:1.15rem;color:#fff}.p1-ammo i{font-style:normal}.p1-ammo img{width:1.45rem;height:1.45rem}
+.p1-left{position:absolute;left:calc(1.25vw + clamp(14.75rem,15.4vw,18.5rem));bottom:2.2vh;display:flex;flex-direction:column;align-items:flex-start;gap:.42rem;width:min(22rem,31vw);max-width:22rem}.p1-zones{order:1}.p1-voice-row{order:2}.p1-location{order:3;display:flex;align-items:center;gap:.55rem}.p1-worktimer{order:4}.p1-location img{width:1.65rem;height:1.65rem}.p1-location div{display:flex;flex-direction:column}.p1-location b{font-size:.94rem;line-height:1.05rem;text-transform:uppercase}.p1-location span{font-size:.62rem;color:rgba(255,255,255,.52);text-transform:uppercase;letter-spacing:.08em}
+.p1-voice-row{display:flex;gap:.35rem;align-items:center}.p1-voice,.p1-radio{height:1.75rem;padding:0 .55rem;border-radius:.24rem;background:linear-gradient(180deg,rgba(12,14,20,.85),rgba(12,14,20,.18));display:flex;align-items:center;gap:.4rem;border-bottom:1px solid rgba(255,255,255,.08)}.p1-voice b,.p1-radio{font-size:.63rem;letter-spacing:.08em}.mic-shape{position:relative;width:.58rem;height:.78rem;border:2px solid rgba(255,255,255,.55);border-radius:.42rem}.mic-shape:after{content:"";position:absolute;left:50%;bottom:-.35rem;transform:translateX(-50%);width:.62rem;height:.32rem;border-bottom:2px solid rgba(255,255,255,.55);border-left:2px solid transparent;border-right:2px solid transparent}.p1-voice.speaking{background:linear-gradient(180deg,rgba(219,18,27,.86),rgba(123,9,14,.22));box-shadow:0 0 14px rgba(219,18,27,.28)}.p1-voice.speaking .mic-shape{border-color:#fff}.p1-radio.active{background:linear-gradient(180deg,rgba(219,18,27,.82),rgba(123,9,14,.2))}.p1-radio span{color:rgba(255,255,255,.58)}
+.p1-zones{display:flex;flex-direction:column;gap:.25rem}.p1-zones>div{height:1.7rem;padding:0 .6rem;display:flex;align-items:center;gap:.42rem;border-radius:.18rem;font-size:.72rem;letter-spacing:.03em}.p1-zones img{width:1rem;height:1rem}.p1-zones .green{background:linear-gradient(90deg,rgba(14,173,78,.55),rgba(0,0,0,0))}.p1-zones .red{background:linear-gradient(90deg,rgba(219,18,27,.58),rgba(0,0,0,0))}.p1-zones .fish{background:linear-gradient(90deg,rgba(35,116,255,.5),rgba(0,0,0,0))}
+.p1-worktimer{display:grid;grid-template-columns:1.7rem auto;grid-template-rows:auto auto;column-gap:.45rem;align-items:center;margin-top:.15rem}.p1-clock-icon{grid-row:1/3;width:1.65rem;height:1.65rem;border:2px solid rgba(255,255,255,.22);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.05rem}.p1-worktimer b{font-size:1.12rem;line-height:1}.p1-worktimer small{font-size:.52rem;color:rgba(255,255,255,.5);letter-spacing:.12em}
+.p1-prison{position:absolute;top:1.05rem;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:.8rem}.p1-prison:after{content:"";position:absolute;top:-4.5rem;left:50%;transform:translateX(-50%);width:9rem;height:9rem;background:#6c0c0c;filter:blur(5.6rem);border-radius:50%;z-index:-1}.p1-ring{width:2.25rem;height:2.25rem;position:relative;display:grid;place-items:center}.p1-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}.p1-ring circle{fill:rgba(0,0,0,.1);stroke-width:4;stroke-dasharray:120}.p1-ring .bg{stroke:rgba(255,255,255,.07)}.p1-ring .fg{fill:none;stroke:#db121b;stroke-dashoffset:var(--ring-offset,0);transition:stroke-dashoffset .3s linear}.p1-ring img{position:relative;width:.9rem;height:.9rem}.p1-prison>div:last-child{display:flex;flex-direction:column}.p1-prison span{font-size:.72rem;color:rgba(255,255,255,.55);letter-spacing:.04em}.p1-prison b{font-size:1.25rem;line-height:1.35rem}.p1-prison small{font-size:.52rem;color:rgba(255,255,255,.4);max-width:18rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p1-quest{position:absolute;top:10.2rem;right:1.2rem;width:14rem;display:flex;flex-direction:column;align-items:flex-end}.p1-quest:after{content:"";position:absolute;width:12.6rem;height:5rem;right:-6rem;top:-1rem;background:#6c0c0c;filter:blur(4rem);z-index:-1}.p1-quest>span{font-size:.7rem;color:rgba(255,255,255,.55);text-transform:uppercase}.p1-quest>div{display:flex;align-items:center;gap:.35rem}.p1-quest b{font-size:1rem;text-transform:uppercase}.p1-quest i{width:.7rem;height:.7rem;border:2px solid #db121b;border-radius:50%;box-shadow:inset 0 0 0 2px transparent;position:relative}.p1-quest i:after{content:"";position:absolute;inset:2px;border-radius:50%;background:#db121b}.p1-quest small{font-size:.65rem;color:#db121b;margin-top:.12rem}
+.p1-capture{position:absolute;left:2.1rem;bottom:11.65rem;display:flex;align-items:center;gap:.45rem}.p1-capture>span{width:2.55rem;height:2.55rem;border:2px solid rgba(255,255,255,.16);border-radius:50%;display:grid;place-items:center;font-size:1.45rem}.p1-capture>div{display:flex;flex-direction:column}.p1-capture small{font-size:.58rem;color:rgba(255,255,255,.5);text-transform:uppercase}.p1-capture b{font-size:1.25rem}
+.p1-speedometer{position:absolute;right:1.2rem;bottom:.6rem;width:22.1rem;height:12.1rem;background:url('img/newhud/speedometer/bg.svg') center/contain no-repeat}.p1-speed-main{position:absolute;left:0;top:1.2rem;display:flex;align-items:baseline;white-space:nowrap}.p1-speed-main span,.p1-speed-main b{font-size:1.9rem;line-height:2.25rem}.p1-speed-main span{color:rgba(255,255,255,.26)}.p1-speed-main small{font-size:1rem;margin-left:.25rem}.p1-speed-arc{position:absolute;left:.75rem;top:3.55rem;width:18.2rem;height:.24rem;background:rgba(255,255,255,.08);transform:skewX(-28deg);overflow:hidden}.p1-speed-arc i{display:block;height:100%;width:0;background:#fff;transition:width .09s linear;box-shadow:0 0 12px rgba(255,255,255,.55)}
+.p1-fuel{position:absolute;left:.6rem;top:4.75rem}.p1-fuel b{font-size:1.22rem}.p1-fuel>div{width:13rem;height:.18rem;background:rgba(255,255,255,.08);margin-top:.35rem;overflow:hidden}.p1-fuel i{display:block;height:100%;width:0;background:#aaff3f;transition:width .16s linear}.p1-fuel i.warn{background:#ffd43f}.p1-fuel i.danger{background:#ff3030}
+.p1-veh-info{position:absolute;top:6.5rem;left:3.3rem;display:flex;gap:.5rem}.p1-veh-info>div{width:2.05rem;height:4rem;background:linear-gradient(360deg,#0c0e14 0%,rgba(12,14,20,0) 100%);border-radius:.18rem;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:.62rem 0 .22rem;transition:.16s ease}.p1-veh-info>div.active{background:linear-gradient(360deg,#ff0000 0%,rgba(20,12,12,0) 100%);filter:drop-shadow(0 0 8px rgba(255,0,0,.2))}.p1-veh-info img{height:1.35rem;max-width:1.5rem}.p1-veh-info span{font-size:.78rem}.p1-engine-health{position:absolute;right:1.2rem;bottom:1.2rem;width:7.2rem}.p1-engine-health span{font-size:.48rem;color:rgba(255,255,255,.5);letter-spacing:.1em}.p1-engine-health i{display:block;height:.18rem;background:rgba(255,255,255,.08);margin-top:.22rem}.p1-engine-health b{display:block;height:100%;width:100%;background:#fff;transition:width .16s linear}
+@media(max-width:1366px){.p1hud{transform:scale(.88);transform-origin:center center}.p1-right{right:-.6vw}.p1-left{left:calc(.8vw + clamp(14.2rem,16vw,16.8rem));bottom:2.35vh;width:20rem}.p1-speedometer{right:.2rem}}
+@media(max-width:1100px){.p1-left{left:calc(.65vw + 14rem);width:18rem}.p1-location b{font-size:.82rem}.p1-location span{font-size:.56rem}}
+
+
+/* Settings V16 damage feedback */
+.p1-damage-indicator{position:fixed;inset:0;z-index:49999;opacity:0;pointer-events:none;transition:opacity .32s ease}
+.p1-damage-indicator.show{opacity:1;transition:opacity .06s ease}
+.p1-damage-indicator.front{background:linear-gradient(180deg,rgba(255,25,35,.48),rgba(255,0,0,0) 34%)}
+.p1-damage-indicator.back{background:linear-gradient(0deg,rgba(255,25,35,.48),rgba(255,0,0,0) 34%)}
+.p1-damage-indicator.left{background:linear-gradient(90deg,rgba(255,25,35,.48),rgba(255,0,0,0) 34%)}
+.p1-damage-indicator.right{background:linear-gradient(270deg,rgba(255,25,35,.48),rgba(255,0,0,0) 34%)}
+
+
+/* Dark City HUD Scale / Minimap Anchor V2
+   Keep the minimap-side anchor outside every HUD scale transform.
+   Only the inner content changes size. */
+#p1hud.p1hud {
+  transform: none !important;
+  transform-origin: initial !important;
+}
+
+/* Native GTA minimap occupies roughly the first 16vw on standard aspects.
+   This fixed viewport anchor never moves when HUD Scale changes. */
+#p1hud .p1-left-anchor {
+  position: fixed !important;
+  left: calc(16vw + 1rem) !important;
+  bottom: 2.2vh !important;
+  width: min(22rem, calc(84vw - 1rem)) !important;
+  max-width: 22rem !important;
+  height: auto !important;
+  transform: none !important;
+  transform-origin: initial !important;
+  pointer-events: none !important;
+  z-index: 50 !important;
+}
+
+#p1hud .p1-left-anchor > .p1-left {
+  position: relative !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: min(22rem, calc(84vw - 1rem)) !important;
+  max-width: 22rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: .42rem !important;
+
+  /* Only visual content scales; fixed anchor remains unchanged. */
+  transform: scale(var(--hud-scale, 1)) !important;
+  transform-origin: left bottom !important;
+  transition: transform .18s ease !important;
+}
+
+/* Prevent older global/individual transforms from stacking. */
+#p1hud .p1-left-anchor .p1-location,
+#p1hud .p1-left-anchor .p1-voice-row,
+#p1hud .p1-left-anchor .p1-zones,
+#p1hud .p1-left-anchor .p1-worktimer {
+  transform: none;
+}
+
+/* Slightly safer offsets for narrow screens. */
+@media (max-width: 1400px) {
+  #p1hud .p1-left-anchor {
+    left: calc(16.8vw + .75rem) !important;
+  }
+}
+
+@media (max-width: 1100px) {
+  #p1hud .p1-left-anchor {
+    left: calc(17.5vw + .6rem) !important;
+  }
+}
+
+
+/* Dark City Minimap Side Anchor V3
+   Extra clearance from the native radar and complete isolation from M Menu UI scale. */
+html, body {
+  zoom: 1 !important;
+}
+
+#p1hud .p1-left-anchor {
+  left: calc(17.6vw + 1.35rem) !important;
+}
+
+@media (max-width: 1600px) {
+  #p1hud .p1-left-anchor {
+    left: calc(18.2vw + 1.2rem) !important;
+  }
+}
+
+@media (max-width: 1366px) {
+  #p1hud .p1-left-anchor {
+    left: calc(19vw + 1rem) !important;
+  }
+}
+
+
+/* Dark City HUD Scale V4
+   Scale every visual HUD group independently while keeping the minimap-side
+   anchor fixed in viewport space. */
+
+#p1hud.p1hud {
+  transform: none !important;
+}
+
+/* Top-right brand, online/time, money/bank, ammo/wanted */
+#p1hud .p1-right {
+  transform: scale(var(--hud-scale, 1)) !important;
+  transform-origin: right top !important;
+  transition: transform .18s ease !important;
+}
+
+/* Minimap-side content only; anchor itself never moves */
+#p1hud .p1-left-anchor {
+  transform: none !important;
+}
+#p1hud .p1-left-anchor > .p1-left {
+  transform: scale(var(--hud-scale, 1)) !important;
+  transform-origin: left bottom !important;
+  transition: transform .18s ease !important;
+}
+
+/* Vehicle HUD */
+#p1hud .p1-speedometer {
+  transform: scale(var(--hud-scale, 1)) !important;
+  transform-origin: right bottom !important;
+  transition: transform .18s ease !important;
+}
+
+/* Center-top prison timer */
+#p1hud .p1-prison {
+  transform: translateX(-50%) scale(var(--hud-scale, 1)) !important;
+  transform-origin: center top !important;
+  transition: transform .18s ease !important;
+}
+
+/* Right-side quest panel */
+#p1hud .p1-quest {
+  transform: scale(var(--hud-scale, 1)) !important;
+  transform-origin: right top !important;
+  transition: transform .18s ease !important;
+}
+
+/* Left-side capture widget */
+#p1hud .p1-capture {
+  transform: scale(var(--hud-scale, 1)) !important;
+  transform-origin: left bottom !important;
+  transition: transform .18s ease !important;
+}
+
+/* Work timer may sit inside the fixed minimap-side block; prevent double scale */
+#p1hud .p1-left-anchor .p1-worktimer {
+  transform: none !important;
+}
+
+/* Any standalone work timer outside the anchor */
+#p1hud > .p1-worktimer {
+  transform: scale(var(--hud-scale, 1)) !important;
+  transform-origin: left bottom !important;
+  transition: transform .18s ease !important;
+}
+
+/* Daily reward HUD timer */
+.p1-daily{margin-top:10px;padding:8px 12px;border-left:3px solid #f0c34e;background:transparent;display:flex;flex-direction:column;align-items:flex-end;min-width:170px;box-shadow:0 0 18px rgba(240,195,78,.12)}
+.p1-daily.hidden{display:none!important}.p1-daily span{font-size:9px;letter-spacing:1.8px;color:#f0c34e}.p1-daily b{font-size:20px;line-height:22px;color:#fff}.p1-daily small{font-size:7px;letter-spacing:1px;color:rgba(255,255,255,.45)}
+
+
+/* Nearby phone-number sharing */
+#p1hud .p1-shared-number{position:absolute;top:18vh;left:50%;transform:translateX(-50%) scale(var(--hud-scale,1));transform-origin:center top;min-width:280px;padding:13px 22px;background:linear-gradient(135deg,rgba(5,16,24,.96),rgba(8,31,43,.94));border:1px solid rgba(64,213,255,.65);border-left:4px solid #36d6ff;box-shadow:0 0 28px rgba(38,201,255,.2);display:flex;flex-direction:column;align-items:center;gap:3px;z-index:90;transition:opacity .2s ease,transform .2s ease}
+#p1hud .p1-shared-number.hidden{display:none!important}
+#p1hud .p1-shared-number span{font-size:8px;letter-spacing:2.2px;color:#55dcff}
+#p1hud .p1-shared-number b{font-size:12px;letter-spacing:1px;color:#fff}
+#p1hud .p1-shared-number strong{font-size:25px;letter-spacing:4px;color:#fff;text-shadow:0 0 14px rgba(54,214,255,.55)}
+#p1hud .p1-shared-number small{font-size:8px;color:rgba(255,255,255,.52)}
+
+
+/* DARK CITY RP — Premium glass speedometer V16 */
+#p1hud .p1-speedometer-premium{position:fixed!important;right:2.2vw!important;bottom:2.3vh!important;width:27rem!important;height:15.7rem!important;padding:1rem 1.15rem .72rem!important;box-sizing:border-box!important;border:1px solid rgba(255,255,255,.12)!important;border-radius:1.15rem!important;background:linear-gradient(135deg,rgba(9,13,20,.94),rgba(15,20,29,.86))!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;box-shadow:0 1rem 3.5rem rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.08)!important;overflow:hidden!important;color:#f7f8fb!important;display:flex;flex-direction:column;gap:.65rem;z-index:100!important}
+#p1hud .p1-speedometer-premium.hidden{display:none!important}
+#p1hud .p1-speedometer-premium:before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,#ffb45c,#ff6b22,transparent);box-shadow:0 0 18px rgba(255,126,42,.5)}
+#p1hud .p1s-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding-left:.3rem}
+#p1hud .p1s-live{font-size:.54rem;letter-spacing:.17em;color:#9ca8b8;font-weight:800;display:flex;align-items:center;gap:.4rem}
+#p1hud .p1s-live i,#p1hud .p1s-dot{width:.38rem;height:.38rem;border-radius:50%;background:#ff913d;box-shadow:0 0 10px #ff913d;display:inline-block}
+#p1hud .p1s-name{font-size:.72rem;font-weight:800;letter-spacing:.08em;color:#fff;max-width:14rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+#p1hud .p1s-main{display:grid;grid-template-columns:12rem 1fr;align-items:center;gap:.8rem;flex:1;min-height:0}
+#p1hud .p1s-gauge{width:11.6rem;height:11.6rem;position:relative;display:grid;place-items:center;margin-left:.05rem}
+#p1hud .p1s-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-135deg);overflow:visible}
+#p1hud .p1s-ring-track,#p1hud .p1s-ring-value{fill:none;stroke-width:8;stroke-linecap:round;stroke-dasharray:452.39 603.19;transform-origin:110px 110px}
+#p1hud .p1s-ring-track{stroke:rgba(255,255,255,.09)}
+#p1hud .p1s-ring-value{stroke:#ff963f;stroke-dasharray:452.39;stroke-dashoffset:452.39;filter:drop-shadow(0 0 5px rgba(255,139,54,.65));transition:stroke-dashoffset .12s linear}
+#p1hud .p1s-speed{display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:-.15rem}
+#p1hud .p1s-speed b{font-size:3.2rem;line-height:3.15rem;font-weight:800;letter-spacing:-.08em;color:#fff;font-variant-numeric:tabular-nums;text-shadow:0 2px 22px rgba(255,255,255,.12)}
+#p1hud .p1s-speed span{font-size:.56rem;letter-spacing:.24em;color:#9da8b7;font-weight:800;margin-top:.18rem}
+#p1hud .p1s-speed-limit{position:absolute;bottom:.75rem;display:flex;gap:.35rem;align-items:center;font-size:.48rem;letter-spacing:.14em;color:#7d8999}
+#p1hud .p1s-speed-limit b{color:#cbd3df;font-size:.6rem}
+#p1hud .p1s-stats{display:flex;flex-direction:column;gap:.85rem;padding:.2rem .2rem .1rem 0}
+#p1hud .p1s-stat{display:flex;flex-direction:column;gap:.38rem}
+#p1hud .p1s-stat-top{display:flex;align-items:center;justify-content:space-between;gap:.4rem}
+#p1hud .p1s-stat-top>span,#p1hud .p1s-gear>span{font-size:.55rem;color:#8995a5;letter-spacing:.16em;font-weight:800}
+#p1hud .p1s-stat-top>b{font-size:.76rem;color:#fff;font-weight:800;font-variant-numeric:tabular-nums}
+#p1hud .p1s-stat-top small{font-size:.58rem;color:#8793a3;font-weight:600}
+#p1hud .p1s-stat-top small i{font-style:normal}
+#p1hud .p1s-bar{height:.28rem;border-radius:2rem;background:rgba(255,255,255,.09);overflow:hidden}
+#p1hud .p1s-bar i{height:100%;width:100%;display:block;border-radius:2rem;background:linear-gradient(90deg,#ff762d,#ffbd69);transition:width .18s linear}
+#p1hud .p1s-bar i.warn{background:#ffc04e}#p1hud .p1s-bar i.danger{background:#ff4d4d}
+#p1hud .p1s-stat:not(.p1s-fuel-stat) .p1s-bar i{background:linear-gradient(90deg,#36c98b,#8be7b4)}
+#p1hud .p1s-gear{display:flex;align-items:center;justify-content:space-between;padding-top:.05rem}
+#p1hud .p1s-gear b{font-size:1.15rem;color:#ffad61;font-weight:800;min-width:1.6rem;text-align:center}
+#p1hud .p1s-indicators{display:flex;gap:.4rem}
+#p1hud .p1s-indicators>div{display:flex;align-items:center;justify-content:center;gap:.25rem;flex:1;min-width:0;padding:.36rem .3rem;border:1px solid rgba(255,255,255,.08);border-radius:.42rem;background:rgba(255,255,255,.025);color:#788596}
+#p1hud .p1s-indicators>div.active{border-color:rgba(255,155,75,.35);background:rgba(255,145,61,.1);color:#ffb36d}
+#p1hud .p1s-ind-icon{font-size:.8rem;line-height:1}#p1hud .p1s-indicators small{font-size:.43rem;letter-spacing:.08em;font-weight:800}
+#p1hud .p1s-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid rgba(255,255,255,.075);padding:.55rem .25rem 0;color:#7f8b9b;font-size:.48rem;letter-spacing:.14em;font-weight:800}
+#p1hud .p1s-footer>span:first-child{display:flex;align-items:center;gap:.38rem}
+@media(max-width:1366px){#p1hud .p1-speedometer-premium{transform:scale(.86)!important;transform-origin:right bottom!important;right:1vw!important;bottom:1.3vh!important}}
+@media(max-width:1100px){#p1hud .p1-speedometer-premium{transform:scale(.72)!important;right:.5vw!important;bottom:.7vh!important}}
+
+
+/* DARK CITY RP — V17 instrument-cluster rebuild */
+#p1hud .p1-speedometer-premium{right:2.0vw!important;bottom:2.0vh!important;width:36rem!important;height:22rem!important;padding:1.25rem 1.4rem 1rem!important;border-radius:1.35rem!important;background:linear-gradient(145deg,rgba(5,9,16,.97),rgba(13,20,31,.95) 58%,rgba(7,12,20,.97))!important;border:1px solid rgba(255,155,69,.34)!important;box-shadow:0 1.2rem 4rem rgba(0,0,0,.58),0 0 2.2rem rgba(255,125,42,.12),inset 0 1px 0 rgba(255,255,255,.1)!important;gap:.75rem!important}
+#p1hud .p1s-head{padding-bottom:.55rem;border-bottom:1px solid rgba(255,255,255,.08)}
+#p1hud .p1s-live{font-size:.67rem!important;letter-spacing:.2em!important}
+#p1hud .p1s-name{font-size:.9rem!important;max-width:18rem!important}
+#p1hud .p1s-main{grid-template-columns:17rem 1fr!important;gap:1.25rem!important}
+#p1hud .p1s-gauge{width:16.3rem!important;height:16.3rem!important;margin-left:.15rem!important;filter:drop-shadow(0 0 1.2rem rgba(255,137,48,.12))}
+#p1hud .p1s-ring-track,#p1hud .p1s-ring-value{stroke-width:7!important}
+#p1hud .p1s-ring-value{stroke:url(#dcSpeedGradient)!important;filter:drop-shadow(0 0 7px rgba(255,140,54,.8))!important}
+#p1hud .p1s-speed b{font-size:4.65rem!important;line-height:4.55rem!important;letter-spacing:-.09em!important;text-shadow:0 0 24px rgba(255,255,255,.17)!important}
+#p1hud .p1s-speed span{font-size:.72rem!important;letter-spacing:.3em!important}
+#p1hud .p1s-speed-limit{bottom:1.15rem!important;font-size:.62rem!important}
+#p1hud .p1s-speed-limit b{font-size:.75rem!important}
+#p1hud .p1s-stats{gap:.85rem!important;padding-right:.1rem!important}
+#p1hud .p1s-stat-top>span,#p1hud .p1s-gear>span{font-size:.67rem!important;letter-spacing:.18em!important}
+#p1hud .p1s-stat-top>b{font-size:.92rem!important}
+#p1hud .p1s-stat-top small{font-size:.68rem!important}
+#p1hud .p1s-bar{height:.42rem!important;background:rgba(255,255,255,.1)!important}
+#p1hud .p1s-gear{padding:.15rem .15rem .35rem!important;border-bottom:1px solid rgba(255,255,255,.07)}
+#p1hud .p1s-gear b{font-size:1.55rem!important}
+#p1hud .p1s-rpm{display:flex;flex-direction:column;gap:.38rem}
+#p1hud .p1s-rpm>div:first-child{display:flex;align-items:center;justify-content:space-between}
+#p1hud .p1s-rpm span{font-size:.62rem;letter-spacing:.17em;color:#8995a5;font-weight:800}
+#p1hud .p1s-rpm b{font-size:.78rem;color:#f6f7fa;font-variant-numeric:tabular-nums}
+#p1hud .p1s-rpm-track{height:.34rem;border-radius:2rem;background:linear-gradient(90deg,rgba(255,255,255,.09),rgba(255,255,255,.04));overflow:hidden}
+#p1hud .p1s-rpm-track i{display:block;width:0;height:100%;border-radius:2rem;background:linear-gradient(90deg,#ff9b42,#ffd16b);box-shadow:0 0 12px rgba(255,148,54,.4);transition:width .1s linear}
+#p1hud .p1s-rpm-track i.redline{background:linear-gradient(90deg,#ff8a42,#ff3e4d);box-shadow:0 0 14px rgba(255,55,70,.55)}
+#p1hud .p1s-indicators{gap:.45rem!important}
+#p1hud .p1s-indicators>div{min-height:2.15rem!important;flex-direction:column!important;gap:.2rem!important;padding:.38rem .3rem!important;border-radius:.55rem!important}
+#p1hud .p1s-indicators>div.active{border-color:rgba(255,166,83,.52)!important;background:rgba(255,145,61,.14)!important;color:#ffbd7a!important;box-shadow:inset 0 0 1rem rgba(255,145,61,.06)}
+#p1hud .p1s-indicators>div.inactive{color:#7e8999!important}
+#p1hud .p1s-ind-icon{font-size:1rem!important}
+#p1hud .p1s-indicators small{font-size:.48rem!important;letter-spacing:.1em!important}
+#p1hud .p1s-footer{font-size:.57rem!important;padding-top:.65rem!important}
+@media(max-width:1500px){#p1hud .p1-speedometer-premium{transform:scale(.84)!important;transform-origin:right bottom!important;right:.8vw!important;bottom:.8vh!important}}
+@media(max-width:1100px){#p1hud .p1-speedometer-premium{transform:scale(.68)!important;right:.4vw!important;bottom:.5vh!important}}
+
+
+/* V18: genuinely transparent overlay — keep only readable instrument graphics. */
+#p1hud .p1-speedometer-premium{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  overflow:visible!important;
+}
+#p1hud .p1-speedometer-premium:before{display:none!important}
+#p1hud .p1s-head{border:0!important;background:transparent!important}
+#p1hud .p1s-main,#p1hud .p1s-gauge,#p1hud .p1s-stats,
+#p1hud .p1s-stat,#p1hud .p1s-gear,#p1hud .p1s-rpm,
+#p1hud .p1s-footer{background:transparent!important}
+#p1hud .p1s-indicators>div{background:transparent!important;border-color:rgba(255,255,255,.2)!important}
+#p1hud .p1s-speed b,#p1hud .p1s-name,#p1hud .p1s-stat-top>b,
+#p1hud .p1s-gear b,#p1hud .p1s-rpm b,#p1hud .p1s-speed-limit b{
+  text-shadow:0 2px 7px rgba(0,0,0,.95),0 0 14px rgba(0,0,0,.7)!important;
+}
+#p1hud .p1s-live,#p1hud .p1s-stat-top>span,#p1hud .p1s-gear>span,
+#p1hud .p1s-rpm span,#p1hud .p1s-footer,#p1hud .p1s-speed span,
+#p1hud .p1s-speed-limit{ text-shadow:0 1px 5px rgba(0,0,0,1)!important }
+#p1hud .p1s-speed-limit{bottom:.45rem!important;font-size:.65rem!important;color:#fff!important}
+#p1hud .p1s-speed-limit:before{content:'TOP SPEED';margin-right:.35rem;color:#ffb36d;font-weight:900}
+#p1hud .p1s-speed-limit span{display:none!important}
+#p1hud .p1s-indicators>div.active{background:rgba(255,145,61,.13)!important}

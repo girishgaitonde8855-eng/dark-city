@@ -1,0 +1,116 @@
+/* Dark City RP - GTA5Grand inspired HUD patch v1
+   Safe override: only affects #hud overlay. */
+#hud{
+  position:fixed!important;
+  inset:0!important;
+  z-index:50000!important;
+  pointer-events:none!important;
+  font-family:Arial, Helvetica, sans-serif!important;
+}
+#hud.hidden{display:none!important;}
+.dc-grandhud{
+  position:absolute;
+  right:18px;
+  top:14px;
+  width:245px;
+  color:#fff;
+  text-align:right;
+  text-shadow:0 2px 8px rgba(0,0,0,.95),0 0 14px rgba(255,214,45,.18);
+}
+.dcgh-brand{
+  font-size:23px;
+  line-height:25px;
+  font-weight:1000;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  color:#fff;
+}
+.dcgh-brand span{
+  color:#ffe04f;
+  font-size:13px;
+  font-weight:900;
+  margin-left:4px;
+}
+.dcgh-meta{
+  display:flex;
+  justify-content:flex-end;
+  gap:9px;
+  margin-top:3px;
+  font-size:12px;
+  color:#ffe04f;
+  font-weight:900;
+}
+.dcgh-moneybox{margin-top:15px;}
+.dcgh-money{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:9px;
+  font-size:19px;
+  font-weight:1000;
+  margin:4px 0;
+}
+.dcgh-money .ico{
+  width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.12);font-size:13px;box-shadow:0 0 12px rgba(255,255,255,.12);
+}
+.dcgh-money.cash{color:#fff;}
+.dcgh-money.bank{color:#eaf6ff;}
+.dcgh-wanted{
+  margin-top:8px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.9px;
+  color:#d9e7f4;
+}
+.dcgh-stars{font-size:16px;letter-spacing:1px;color:rgba(255,255,255,.24);}
+.dcgh-stars .on{color:#ff334f;text-shadow:0 0 12px rgba(255,51,79,.95);}
+.dcgh-sideicons{
+  position:absolute;
+  top:118px;
+  right:0;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  align-items:flex-end;
+}
+.dcgh-sideicons div{
+  width:25px;height:25px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.18);font-size:13px;
+  box-shadow:0 2px 12px rgba(0,0,0,.35);
+}
+.dcgh-bottomtime{
+  position:fixed;
+  right:20px;
+  bottom:18px;
+  text-align:right;
+  color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,.95);
+}
+.dcgh-bottomtime b{font-size:20px;display:block;}
+.dcgh-bottomtime span{font-size:13px;color:#e7f3ff;display:block;}
+.dcgh-dailycard{
+  position:fixed;
+  right:78px;
+  bottom:70px;
+  min-width:150px;
+  padding:8px 12px 10px;
+  border-radius:8px;
+  background:linear-gradient(180deg,rgba(255,226,74,.96),rgba(255,179,26,.94));
+  color:#201500;
+  box-shadow:0 6px 22px rgba(0,0,0,.45);
+  text-align:center;
+  text-shadow:none;
+  font-weight:1000;
+}
+.dcgh-dailycard .small{font-size:11px;text-transform:uppercase;opacity:.75;}
+.dcgh-dailycard .timer{font-size:20px;line-height:22px;}
+.dcgh-dailycard .reward{font-size:12px;color:#174d1d;}
+@media(max-width:1280px){
+  .dc-grandhud{right:12px;top:10px;transform:scale(.88);transform-origin:top right;}
+  .dcgh-dailycard{transform:scale(.9);transform-origin:bottom right;}
+}

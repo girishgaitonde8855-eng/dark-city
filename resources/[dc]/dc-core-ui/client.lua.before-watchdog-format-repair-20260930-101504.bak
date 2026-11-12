@@ -1,0 +1,1883 @@
+local QBCore = exports['qb-core']:GetCoreObject()
+
+local uiOpen = false
+local currentView = Config.DefaultView or 'statisticsTab'
+local hudVisible = true
+local cinematicFilter = false
+local minimapMode = GetResourceKvpString('dc_core_ui_minimap_mode') or 'always'
+local graphicsPreset = 'balanced'
+local notificationPosition = GetResourceKvpString('dc_core_ui_notification_position') or 'bottom-right'
+local notificationSound = true
+local chatVisible = true
+local damageIndicator = true
+local vehicleHud = true
+local autoSeatbelt = false
+local hudScale = 100
+local appliedSettings = {}
+local settingsLoadSerial = 0
+local lastDeathShown = false
+local authShownThisSession = false
+local spawnSelectShownThisSession = false
+local spawnPending = false
+local spawnOnlyAirport = false
+local spawnUiOpenedAt = 0
+local spawnActionStartedAt = 0
+local playerLoadedFinalized = false
+
+local spawnReleaseSerial = 0
+local nativeSpawnFallbackSerial = 0
+
+local function darkCityNoClipActive()
+    local ok, active = pcall(function()
+        return exports['dc-admin']:IsNoClipActive()
+    end)
+    return ok and active == true
+end
+-- Spawn hand-off can race with worldmanager/NUI callbacks. Always restore the
+-- complete gameplay state after the selected spawn is finalized.
+local function releaseSpawnLock()
+    if darkCityNoClipActive() then return end
+    local ped = PlayerPedId()
+    -- Never carry txAdmin Player Mode/NoClip into normal gameplay after spawn.
+    pcall(function() TriggerEvent('txcl:setPlayerMode', 'none', false) end)
+    -- Clear private camera state owned by zonecreator/worldmanager before
+    -- switching back to the normal gameplay renderer.
+    pcall(function() TriggerEvent('sd-zonecreator:client:ResetRuntime') end)
+    pcall(function() TriggerEvent('dc-worldmanager:client:ResetRenderState') end)
+    if DoesEntityExist(ped) then
+        FreezeEntityPosition(ped, false)
+        SetEntityVisible(ped, true, false)
+        SetEntityAlpha(ped, 255, false)
+        SetEntityCollision(ped, true, true)
+        SetPlayerInvincible(PlayerId(), false)
+        SetPlayerControl(PlayerId(), true, 0)
+        ClearPedTasksImmediately(ped)
+    end
+    pcall(function() StopPlayerSwitch() end)
+    pcall(function() NetworkSetInSpectatorMode(false, ped) end)
+    pcall(function() SetCinematicModeActive(false) end)
+    pcall(function() StopGameplayCamShaking(true) end)
+    pcall(function() SetGameplayCamRelativeHeading(0.0) end)
+    pcall(function() SetGameplayCamRelativePitch(0.0, 1.0) end)
+    pcall(function() SetFollowPedCamViewMode(1) end)
+    pcall(function() ActivateGameplayCam(true) end)
+    pcall(function() SetCamUseShallowDofMode(false) end)
+    pcall(function() SetTimeScale(1.0) end)
+    pcall(function() RenderScriptCams(false, false, 0, true, true) end)
+    pcall(function() SetCamActive(GetRenderingCam(), false) end)
+    pcall(function() DestroyCam(GetRenderingCam(), true) end)
+    pcall(function() ClearFocus() end)
+    if DoesEntityExist(ped) then
+        local c = GetEntityCoords(ped)
+        RequestCollisionAtCoord(c.x, c.y, c.z)
+        pcall(function() SetLocalPlayerVisibleLocally(true) end)
+        pcall(function() SetPlayerVisibleLocally(PlayerId(), true) end)
+        pcall(function() SetGameplayCamFollowPedThisUpdate() end)
+        pcall(function() ForceGameplayCamRenderingThisUpdate() end)
+    end
+    pcall(function() ClearFocus() end)
+    pcall(function() ActivateGameplayCam(true) end)
+    pcall(function() DisplayHud(true) end)
+    pcall(function() DisplayRadar(true) end)
+    DoScreenFadeIn(0)
+    SetNuiFocus(false, false)
+end
+
+local function scheduleNativeSpawnFallback(c, spawnId)
+    nativeSpawnFallbackSerial = nativeSpawnFallbackSerial + 1
+    local serial = nativeSpawnFallbackSerial
+    local spawn = {
+        x = tonumber(c.x) or 0.0,
+        y = tonumber(c.y) or 0.0,
+        z = tonumber(c.z) or 0.0,
+        heading = tonumber(c.w) or 0.0,
+        -- The custom flow already performed the screen transition. Let the
+        -- native spawnmanager repair the actual player/streaming state without
+        -- introducing another visible fade-to-black.
+        skipFade = true
+    }
+
+    SetTimeout(1200, function()
+        if serial ~= nativeSpawnFallbackSerial or spawnPending then return end
+        if GetResourceState('spawnmanager') ~= 'started' then
+            print('[dc-core-ui] native spawn fallback skipped: spawnmanager is not started')
+            return
+        end
+
+        print('[dc-core-ui] native spawn fallback started id='..tostring(spawnId or 'unknown'))
+        local ok, err = pcall(function()
+            exports['spawnmanager']:spawnPlayer(spawn, function()
+                local ped = PlayerPedId()
+                pcall(function() RenderScriptCams(false, false, 0, true, true) end)
+                pcall(function() DestroyAllCams(true) end)
+                pcall(function() StopPlayerSwitch() end)
+                pcall(function() NetworkSetInSpectatorMode(false, ped) end)
+                pcall(function() ClearFocus() end)
+                pcall(function() ActivateGameplayCam(true) end)
+                pcall(function() SetFrontendActive(false) end)
+                pcall(function() SetPauseMenuActive(false) end)
+                pcall(function() SetNuiFocusKeepInput(false) end)
+                if DoesEntityExist(ped) then
+                    pcall(function() SetFocusEntity(ped) end)
+                    SetPlayerControl(PlayerId(), true, 0)
+                    FreezeEntityPosition(ped, false)
+                    SetEntityVisible(ped, true, false)
+                    SetEntityAlpha(ped, 255, false)
+                    SetEntityCollision(ped, true, true)
+                    SetPlayerInvincible(PlayerId(), false)
+                    ClearPedTasksImmediately(ped)
+                    local coords = GetEntityCoords(ped)
+                    RequestCollisionAtCoord(coords.x, coords.y, coords.z)
+                    pcall(function() SetLocalPlayerVisibleLocally(true) end)
+                    pcall(function() SetPlayerVisibleLocally(PlayerId(), true) end)
+                    pcall(function() SetGameplayCamFollowPedThisUpdate() end)
+                end
+                SetNuiFocus(false, false)
+                pcall(function() ShutdownLoadingScreen() end)
+                pcall(function() ShutdownLoadingScreenNui() end)
+                pcall(function() DisplayHud(true) end)
+                pcall(function() DisplayRadar(true) end)
+                DoScreenFadeIn(500)
+                SetTimeout(8000, function()
+                    pcall(function() ClearFocus() end)
+                end)
+                print('[dc-core-ui] native spawn fallback complete id='..tostring(spawnId or 'unknown'))
+            end)
+        end)
+        if not ok then
+            print('[dc-core-ui] native spawn fallback error: '..tostring(err))
+        end
+    end)
+end
+local function scheduleSpawnRelease()
+    spawnReleaseSerial = spawnReleaseSerial + 1
+    local serial = spawnReleaseSerial
+    for _, delay in ipairs({ 0, 500, 1500, 3000, 5000 }) do
+        SetTimeout(delay, function()
+            if serial ~= spawnReleaseSerial or spawnPending then return end
+            releaseSpawnLock()
+        end)
+    end
+end
+
+
+local function safePrint(msg)
+    print('[dc-core-ui] '..tostring(msg))
+end
+
+local function safeNotify(msg, typ)
+    pcall(function()
+        QBCore.Functions.Notify(tostring(msg), typ or 'primary')
+    end)
+end
+
+local function viewName(v)
+    v = tostring(v or Config.DefaultView or 'statisticsTab')
+    return (Config.ViewAliases and Config.ViewAliases[v]) or v
+end
+
+local worldManagerDailyVisible = false
+
+local function nui(msg)
+    pcall(function()
+        if type(msg) == 'table' then
+            if msg.action == 'hud' then
+                worldManagerDailyVisible = type(msg.data) == 'table' and msg.data.daily_reward ~= nil
+                TriggerEvent('dc-worldmanager:client:SetDailyRewardVisible', hudVisible and worldManagerDailyVisible)
+            elseif msg.action == 'hudVisible' then
+                TriggerEvent('dc-worldmanager:client:SetDailyRewardVisible', msg.value == true and worldManagerDailyVisible)
+            end
+        end
+        SendNUIMessage(msg)
+    end)
+end
+
+-- V5.9 Final timeout-safe cache. Silent fallback prevents M Menu GetData console spam.
+local dataCache = {}
+local lastTimeoutLog = {}
+local DATA_CACHE_MS = 6000
+local DATA_FALLBACK_MS = 900
+
+local function fallbackData(v)
+    local c = dataCache[v]
+    if c and c.data then return c.data end
+    local pd = {}
+    pcall(function() pd = QBCore.Functions.GetPlayerData() or {} end)
+    local money = pd.money or {}
+    local data = {
+        view = v,
+        player = {
+            player_id = (pd.metadata and (pd.metadata.player_id or pd.metadata.playerid or pd.metadata.dcid or pd.metadata.permanent_id)) or 0,
+            citizenid = pd.citizenid,
+            name = ((pd.charinfo and ((pd.charinfo.firstname or '')..' '..(pd.charinfo.lastname or ''))) or GetPlayerName(PlayerId()) or 'Player'),
+            cash = money.cash or 0,
+            bank = money.bank or 0,
+            job = pd.job or {},
+            gang = pd.gang or {},
+            charinfo = pd.charinfo or {},
+            metadata = pd.metadata or {},
+            wanted_stars = 0
+        },
+        server = { online = 0, max = 64, name = 'Dark City RP' },
+        progression = { progress = { level = 1, xp = 0, total_xp = 0, reputation = 0 }, jobs = {}, achievements = {}, achievement_catalog = {}, daily_tasks = {} },
+        daily_reward = nil, reward_tiers = {}
+    }
+
+    -- Spawn Select must never receive the generic JS demo/fallback locations.
+    -- Keep the NUI clickable even if the server callback is briefly delayed.
+    if v == 'darkStore' then
+        data.dark_store = { loading = true, coins = 0, products = {}, categories = {}, orders = {}, ledger = {}, entitlements = {} }
+    end
+
+    if v == 'prime' then
+        data.prime = { loading = true, active = false, daily = { rewards = {} }, benefits = {}, history = {}, plans = {} }
+    end
+
+    if v == 'spawnSelect' then
+        data.spawns = {}
+        for _, spawn in ipairs(Config.Spawns or {}) do
+            data.spawns[#data.spawns + 1] = { id = spawn.id, label = spawn.label, icon = spawn.icon }
+        end
+    end
+
+    return data
+end
+
+local function cbData(view, cb)
+    local v = viewName(view)
+    if v == 'familyMenu' then dataCache[v] = nil end
+    local cbDone = false
+    local fallbackSent = false
+    local requestStarted = GetGameTimer()
+
+    -- Fast path: if same view was loaded recently, use it immediately.
+    local cached = dataCache[v]
+    if cached and cached.data and (requestStarted - (cached.time or 0)) < DATA_CACHE_MS then
+        pcall(function() cb(cached.data) end)
+        return
+    end
+
+    -- UI should not wait for SQL/export lag. Send cached/safe data quickly, then late server data refreshes NUI.
+    if v ~= 'familyMenu' and v ~= 'settings' then
+        local fallbackMs = DATA_FALLBACK_MS
+        SetTimeout(fallbackMs, function()
+            if cbDone then return end
+            fallbackSent = true
+            cbDone = true
+            local now = GetGameTimer()
+            -- Silent fallback: keep UI responsive without console spam.
+            lastTimeoutLog[v] = now
+            pcall(function() cb(fallbackData(v)) end)
+        end)
+    end
+
+    local okTrigger, errTrigger = pcall(function()
+        QBCore.Functions.TriggerCallback('dc-core-ui:server:GetData', function(data)
+            data = data or fallbackData(v)
+            dataCache[v] = { data = data, time = GetGameTimer() }
+
+            if not cbDone then
+                cbDone = true
+                pcall(function() cb(data) end)
+                return
+            end
+
+            -- If fallback already opened the page, refresh it silently when real data arrives.
+            if fallbackSent and uiOpen and currentView == v then
+                nui({ action = 'data', view = v, data = data })
+            end
+            if v == 'hud' then nui({ action = 'hud', data = data }) end
+        end, v)
+    end)
+
+    if not okTrigger then
+        if not cbDone then
+            cbDone = true
+            safePrint('GetData trigger error for '..v..': '..tostring(errTrigger))
+            pcall(function() cb(fallbackData(v)) end)
+        end
+    end
+end
+
+local function boolValue(value, default)
+    if value == nil then return default == true end
+    local v = tostring(value):lower()
+    return v == '1' or v == 'true' or v == 'yes' or v == 'on'
+end
+
+-- Admin-only cinematic recording controls. These overrides are session-only and restore
+-- the player preferences that were active when the mode was entered.
+local adminCinematic = {
+    active = false,
+    flags = { hud = false, chat = false, map = false, notifications = false, nativeHud = false },
+    snapshot = nil
+}
+
+local function cinematicAnyHidden()
+    for _, hidden in pairs(adminCinematic.flags) do
+        if hidden then return true end
+    end
+    return false
+end
+
+local function cinematicCapture()
+    if adminCinematic.snapshot then return end
+    adminCinematic.snapshot = { hudVisible = hudVisible, chatVisible = chatVisible, minimapMode = minimapMode }
+end
+
+local function cinematicNotifyVisibility(value)
+    if GetResourceState('dc-notify') == 'started' then
+        TriggerEvent('dc-notify:client:SetVisibility', value == true)
+    end
+end
+
+local function cinematicTutorialVisibility(value)
+    TriggerEvent('dc-tutorial:client:SetVisibility', value == true)
+end
+
+local function cinematicRestore()
+    local snapshot = adminCinematic.snapshot or { hudVisible = true, chatVisible = true, minimapMode = minimapMode }
+    adminCinematic.active = false
+    adminCinematic.snapshot = nil
+    for key in pairs(adminCinematic.flags) do adminCinematic.flags[key] = false end
+    hudVisible = snapshot.hudVisible == true
+    chatVisible = snapshot.chatVisible == true
+    minimapMode = snapshot.minimapMode or minimapMode
+    nui({ action = 'hudVisible', value = hudVisible })
+    TriggerEvent('dc-chat:client:SetVisibility', chatVisible)
+    cinematicNotifyVisibility(true)
+    cinematicTutorialVisibility(true)
+    DisplayRadar(minimapMode == 'always' or (minimapMode == 'vehicle' and IsPedInAnyVehicle(PlayerPedId(), false)))
+    DisplayHud(true)
+end
+
+local function cinematicApply()
+    if not cinematicAnyHidden() then cinematicRestore(); return end
+    cinematicCapture()
+    adminCinematic.active = true
+    local snapshot = adminCinematic.snapshot
+    if adminCinematic.flags.hud then hudVisible = false else hudVisible = snapshot.hudVisible == true end
+    if adminCinematic.flags.chat then chatVisible = false else chatVisible = snapshot.chatVisible == true end
+    nui({ action = 'hudVisible', value = hudVisible })
+    TriggerEvent('dc-chat:client:SetVisibility', chatVisible)
+    cinematicNotifyVisibility(not adminCinematic.flags.notifications)
+    cinematicTutorialVisibility(not adminCinematic.flags.hud)
+    DisplayHud(not adminCinematic.flags.nativeHud)
+    if adminCinematic.flags.map then DisplayRadar(false) end
+end
+
+RegisterNetEvent('dc-core-ui:client:AdminCinematic', function(action, value)
+    action = tostring(action or ''):lower()
+    if action == 'hide_everything' then
+        cinematicCapture()
+        for key in pairs(adminCinematic.flags) do adminCinematic.flags[key] = true end
+    elseif action == 'restore_everything' then
+        cinematicRestore()
+        return
+    elseif action == 'toggle_everything' then
+        if adminCinematic.active then cinematicRestore(); return end
+        cinematicCapture()
+        for key in pairs(adminCinematic.flags) do adminCinematic.flags[key] = true end
+    elseif action == 'hide_hud' then
+        cinematicCapture(); adminCinematic.flags.hud = value ~= false
+    elseif action == 'hide_chat' then
+        cinematicCapture(); adminCinematic.flags.chat = value ~= false
+    elseif action == 'hide_map' then
+        cinematicCapture(); adminCinematic.flags.map = value ~= false
+    elseif action == 'hide_notifications' then
+        cinematicCapture(); adminCinematic.flags.notifications = value ~= false
+    elseif action == 'hide_native_hud' then
+        cinematicCapture(); adminCinematic.flags.nativeHud = value ~= false
+    else
+        return
+    end
+    cinematicApply()
+end)
+local function setGraphicsPreset(value)
+    value = tostring(value or 'balanced'):lower()
+    if value ~= 'performance' and value ~= 'balanced' and value ~= 'cinematic' then value = 'balanced' end
+    graphicsPreset = value
+
+    ClearTimecycleModifier()
+    SetTimecycleModifierStrength(0.0)
+
+    if value == 'performance' then
+        pcall(function() SetReducePedModelBudget(true) end)
+        pcall(function() SetReduceVehicleModelBudget(true) end)
+        SetTimecycleModifier('yell_tunnel_nodirect')
+        SetTimecycleModifierStrength(0.12)
+    elseif value == 'cinematic' then
+        pcall(function() SetReducePedModelBudget(false) end)
+        pcall(function() SetReduceVehicleModelBudget(false) end)
+        SetTimecycleModifier('NG_filmic01')
+        SetTimecycleModifierStrength(0.55)
+    else
+        pcall(function() SetReducePedModelBudget(false) end)
+        pcall(function() SetReduceVehicleModelBudget(false) end)
+    end
+end
+
+
+-- Re-apply the selected graphics preset because other resources can clear timecycle modifiers during spawn/weather changes.
+CreateThread(function()
+    while true do
+        Wait(5000)
+        if graphicsPreset == 'performance' then
+            SetTimecycleModifier('yell_tunnel_nodirect')
+            SetTimecycleModifierStrength(0.12)
+        elseif graphicsPreset == 'cinematic' then
+            SetTimecycleModifier('NG_filmic01')
+            SetTimecycleModifierStrength(0.55)
+        end
+    end
+end)
+
+local function applyClientSetting(key, value)
+    key = tostring(key or '')
+    if key == 'hud_enabled' then
+        hudVisible = boolValue(value, true)
+        if adminCinematic.active and adminCinematic.flags.hud then hudVisible = false end
+        nui({ action = 'hudVisible', value = hudVisible })
+    elseif key == 'ui_scale' then
+        local scale = math.max(80, math.min(130, math.floor(tonumber(value or 100) or 100)))
+        nui({ action = 'setting', key = 'ui_scale', value = scale })
+    elseif key == 'hud_scale' then
+        hudScale = math.max(70, math.min(130, math.floor(tonumber(value or 100) or 100)))
+        nui({ action = 'setting', key = 'hud_scale', value = hudScale })
+    elseif key == 'graphics_preset' then
+        setGraphicsPreset(value)
+    elseif key == 'graphics_cinematic' then
+        -- Backward compatibility with the old boolean setting.
+        local enabled = boolValue(value, false)
+        setGraphicsPreset(enabled and 'cinematic' or 'balanced')
+    elseif key == 'minimap_mode' then
+        local mode = tostring(value or 'vehicle'):lower()
+        if mode ~= 'always' and mode ~= 'vehicle' and mode ~= 'off' then mode = 'vehicle' end
+        minimapMode = mode
+        SetResourceKvp('dc_core_ui_minimap_mode', minimapMode)
+        if not (adminCinematic.active and adminCinematic.flags.map) then
+            DisplayRadar(minimapMode == 'always' or (minimapMode == 'vehicle' and IsPedInAnyVehicle(PlayerPedId(), false)))
+        end
+    elseif key == 'notification_position' then
+        local pos = tostring(value or 'bottom-right'):lower()
+        local allowed = { ['top-left']=true, ['top-right']=true, ['bottom-left']=true, ['bottom-right']=true }
+        if not allowed[pos] then pos = 'bottom-right' end
+        notificationPosition = pos
+        SetResourceKvp('dc_core_ui_notification_position', notificationPosition)
+        TriggerEvent('dc-notify:client:SetPreference', 'position', notificationPosition)
+        if GetResourceState('dc-notify') == 'started' then
+            pcall(function() exports['dc-notify']:SetPreference('position', notificationPosition) end)
+        end
+    elseif key == 'notification_sound' then
+        notificationSound = boolValue(value, true)
+        TriggerEvent('dc-notify:client:SetPreference', 'sound', notificationSound)
+        if GetResourceState('dc-notify') == 'started' then pcall(function() exports['dc-notify']:SetPreference('sound', notificationSound) end) end
+    elseif key == 'chat_visible' then
+        chatVisible = boolValue(value, true)
+        if adminCinematic.active and adminCinematic.flags.chat then chatVisible = false end
+        TriggerEvent('dc-chat:client:SetVisibility', chatVisible)
+    elseif key == 'chat_scale' then
+        TriggerEvent('dc-chat:client:SetLayout', 'scale', math.max(70, math.min(120, tonumber(value or 100) or 100)))
+    elseif key == 'chat_vertical' then
+        TriggerEvent('dc-chat:client:SetLayout', 'vertical', math.max(-20, math.min(35, tonumber(value or 0) or 0)))
+    elseif key == 'damage_indicator' then
+        damageIndicator = boolValue(value, true)
+        TriggerEvent('dc-core-ui:client:SetPhase1Preference', 'damage_indicator', damageIndicator)
+    elseif key == 'vehicle_hud' then
+        vehicleHud = boolValue(value, true)
+        nui({ action = 'setting', key = 'vehicle_hud', value = vehicleHud })
+        TriggerEvent('dc-core-ui:client:SetPhase1Preference', 'vehicle_hud', vehicleHud)
+    elseif key == 'auto_seatbelt' then
+        autoSeatbelt = boolValue(value, false)
+        TriggerEvent('dc-core-ui:client:SetPhase1Preference', 'auto_seatbelt', autoSeatbelt)
+    end
+end
+
+local function getSettingKvpKey(key)
+    local citizenid = 'unknown'
+    pcall(function()
+        local pd = QBCore.Functions.GetPlayerData() or {}
+        citizenid = tostring(pd.citizenid or 'unknown')
+    end)
+    return ('dc_core_ui_setting:%s:%s'):format(citizenid, tostring(key or ''))
+end
+
+local function rememberSettingLocally(key, value)
+    pcall(function() SetResourceKvp(getSettingKvpKey(key), tostring(value)) end)
+end
+
+local function loadLocalSettingFallback(defaults)
+    local options = {}
+    for key, _ in pairs(defaults or {}) do
+        local saved = nil
+        pcall(function() saved = GetResourceKvpString(getSettingKvpKey(key)) end)
+        if saved ~= nil then options[key] = saved end
+    end
+    return options
+end
+
+local function applyClientOptions(options, useLocalFallback)
+    local defaults = {
+        hud_enabled = true,
+        ui_scale = 100,
+        hud_scale = 100,
+        privacy_hide_id = false,
+        player_id_display = true,
+        streamer_mode = false,
+        graphics_preset = 'balanced',
+        minimap_mode = 'vehicle',
+        notification_position = 'bottom-right',
+        notification_sound = true,
+        chat_visible = true,
+        chat_scale = 100,
+        chat_vertical = 0,
+        damage_indicator = true,
+        vehicle_hud = true,
+        auto_seatbelt = false,
+    }
+
+    local resolved = {}
+    for key, value in pairs(defaults) do resolved[key] = value end
+    for key, value in pairs(options or {}) do resolved[key] = value end
+    if useLocalFallback == true then
+        for key, value in pairs(loadLocalSettingFallback(defaults)) do resolved[key] = value end
+    end
+
+    appliedSettings = resolved
+    for key, value in pairs(resolved) do
+        applyClientSetting(key, value)
+        rememberSettingLocally(key, value)
+    end
+
+    -- Some NUI/resource shells are recreated after the first message. Re-send
+    -- the complete setting set so HUD/chat layout survives resource restarts.
+    SetTimeout(500, function()
+        for key, value in pairs(appliedSettings) do applyClientSetting(key, value) end
+    end)
+end
+
+local function loadPersistentSettings(reason)
+    settingsLoadSerial = settingsLoadSerial + 1
+    local serial = settingsLoadSerial
+    dataCache['settings'] = nil
+    local completed = false
+
+    SetTimeout(5000, function()
+        if completed or serial ~= settingsLoadSerial then return end
+        completed = true
+        applyClientOptions({}, true)
+        safePrint('Settings DB response timeout; local character fallback restored ('..tostring(reason or 'unknown')..').')
+    end)
+
+    local ok, err = pcall(function()
+        QBCore.Functions.TriggerCallback('dc-core-ui:server:GetData', function(settingsData)
+            if completed or serial ~= settingsLoadSerial then return end
+            completed = true
+            settingsData = settingsData or {}
+            local options = settingsData.options or {}
+            local savedCount = tonumber(settingsData.options_saved_count or 0) or 0
+            local identityReady = settingsData.settings_identity_ready ~= false
+
+            -- If identity was not ready during very early startup, retry rather
+            -- than accepting defaults and making the player configure again.
+            if not identityReady then
+                SetTimeout(1500, function()
+                    if serial == settingsLoadSerial then loadPersistentSettings('identity-retry') end
+                end)
+                return
+            end
+
+            applyClientOptions(options, savedCount <= 0)
+            dataCache['settings'] = { data = settingsData, time = GetGameTimer() }
+        end, 'settings')
+    end)
+
+    if not ok then
+        completed = true
+        applyClientOptions({}, true)
+        safePrint('Settings load error: '..tostring(err))
+    end
+end
+
+local function saveSetting(key, value)
+    appliedSettings[key] = value
+    rememberSettingLocally(key, value)
+    applyClientSetting(key, value)
+    -- Do not let the 6-second client cache redraw an old toggle state after saving.
+    dataCache['settings'] = nil
+    TriggerServerEvent('dc-core-ui:server:Action', {
+        action = 'option_save',
+        data = { key = key, value = tostring(value) }
+    })
+end
+
+RegisterNetEvent('dc-core-ui:client:SettingSaveResult', function(key, ok, value)
+    if ok then
+        appliedSettings[tostring(key or '')] = value
+        rememberSettingLocally(key, value)
+    end
+end)
+
+RegisterNetEvent('dc-core-ui:client:SettingsResetResult', function(ok)
+    if ok then
+        dataCache['settings'] = nil
+    end
+end)
+
+local function closeUi()
+    -- Spawn selection is a required hand-off from dc-character. Do not let the
+    -- M Menu/Escape/close button hide it before the player picks a destination.
+    if spawnPending and currentView == 'spawnSelect' then
+        safeNotify('Select a spawn location first.', 'error')
+        return
+    end
+    uiOpen = false
+    SetNuiFocus(false, false)
+    nui({ action = 'close' })
+end
+
+local function openUi(view)
+    local requestedView = viewName(view or currentView)
+    -- Prevent the M Menu from being rendered on top of the mandatory spawn
+    -- selector during character login/spawn hand-off.
+    if spawnPending and requestedView ~= 'spawnSelect' then
+        safeNotify('Select a spawn location first.', 'error')
+        return
+    end
+    currentView = requestedView
+    cbData(requestedView, function(data)
+        if currentView ~= requestedView then return end
+        if requestedView == 'settings' then applyClientOptions(data and data.options or {}) end
+        uiOpen = true
+        SetNuiFocus(true, true)
+        nui({ action = 'open', view = requestedView, data = data })
+        TriggerServerEvent('dc-tutorial:server:ClientAction', 'open_main_menu')
+    end)
+end
+
+local function openFactionMenu()
+    QBCore.Functions.TriggerCallback('dc-core-ui:server:GetFactionRoute', function(route)
+        route = route or { kind = 'none' }
+        local kind = tostring(route.kind or 'none')
+        if kind == 'conflict' then
+            safeNotify(route.message or 'Faction data conflict. Contact an administrator.', 'error')
+            return
+        end
+        if kind == 'none' then
+            safeNotify(route.message or 'You are not in an organization or gang.', 'error')
+            return
+        end
+
+        CreateThread(function()
+            closeUi()
+            Wait(150)
+            if kind == 'gang' then
+                if GetResourceState('dc-gangs') ~= 'started' then
+                    safeNotify('Gang system is not available right now.', 'error')
+                    return
+                end
+                TriggerEvent('dc-gangs:client:OpenMenu')
+                return
+            end
+            if GetResourceState('dc-orgs') ~= 'started' then
+                safeNotify('Organization system is not available right now.', 'error')
+                return
+            end
+            TriggerEvent('dc-orgs:client:OpenMenu')
+        end)
+    end)
+end
+
+-- Compatibility name for old local calls in this resource.
+local openOrgMenu = openFactionMenu
+
+local function setWaypoint(data)
+    data = data or {}
+    local x, y = tonumber(data.x), tonumber(data.y)
+    if x and y then
+        CreateThread(function()
+            closeUi()
+            Wait(120)
+            pcall(function() SetWaypointOff() end)
+            Wait(80)
+            SetNewWaypoint(x + 0.0, y + 0.0)
+            safeNotify(data.label and ('GPS set: '..tostring(data.label)) or 'GPS set', 'success')
+        end)
+    else
+        safeNotify('Waypoint location missing', 'error')
+        safePrint('setWaypoint missing coords')
+    end
+end
+
+local function getFallbackSpawn()
+    for _, s in ipairs(Config.Spawns or {}) do
+        if s.coords then return s end
+    end
+    return { id = 'airport', label = 'Airport', coords = vector4(-1037.65, -2737.84, 20.17, 330.0) }
+end
+
+local function getSavedPosition()
+    local ok, data = pcall(function()
+        return QBCore.Functions.GetPlayerData()
+    end)
+    if not ok or not data then return nil end
+
+    local pos = data.position
+    if type(pos) == 'string' then
+        local okJson, decoded = pcall(json.decode, pos)
+        if okJson then pos = decoded end
+    end
+
+    if type(pos) == 'table' and pos.x and pos.y and pos.z then
+        return {
+            x = tonumber(pos.x) or -1037.65,
+            y = tonumber(pos.y) or -2737.84,
+            z = tonumber(pos.z) or 20.17,
+            w = tonumber(pos.w or pos.a or pos.heading or 330.0) or 330.0
+        }
+    end
+
+    return nil
+end
+
+local function getOrganizationSpawn()
+    local ok, data = pcall(function()
+        return QBCore.Functions.GetPlayerData() or {}
+    end)
+    if not ok or type(data) ~= 'table' then return nil, nil end
+
+    local jobName = data.job and tostring(data.job.name or ''):lower() or ''
+    local gangName = data.gang and tostring(data.gang.name or ''):lower() or ''
+
+    local coords = nil
+    local label = nil
+
+    if jobName ~= '' and jobName ~= 'unemployed' then
+        coords = Config.OrgSpawns and (Config.OrgSpawns[jobName] or Config.OrgSpawns.default) or nil
+        label = data.job and (data.job.label or data.job.name) or jobName
+    elseif gangName ~= '' and gangName ~= 'none' then
+        coords = Config.OrgSpawns and (Config.OrgSpawns[gangName] or Config.OrgSpawns.default) or nil
+        label = data.gang and (data.gang.label or data.gang.name) or gangName
+    end
+
+    return coords, label
+end
+
+local function houseCoordsFromRow(row)
+    if type(row) ~= 'table' then return nil end
+    local x, y, z = tonumber(row.x), tonumber(row.y), tonumber(row.z)
+    if not x or not y or not z then return nil end
+    return { x = x, y = y, z = z, w = tonumber(row.h or row.w or row.heading or 0.0) or 0.0 }
+end
+
+local function resolveHouseSpawn(cb)
+    if GetResourceState('dc-housing') ~= 'started' then
+        cb(nil, nil)
+        return
+    end
+
+    local ok = pcall(function()
+        QBCore.Functions.TriggerCallback('dc-housing:server:GetData', function(data)
+            data = data or {}
+            local row = nil
+
+            if type(data.owned) == 'table' and data.owned[1] then
+                row = data.owned[1]
+            elseif type(data.familyHouse) == 'table' then
+                row = data.familyHouse
+            elseif type(data.keys) == 'table' and data.keys[1] then
+                row = data.keys[1]
+            end
+
+            cb(houseCoordsFromRow(row), row and (row.label or 'House') or nil)
+        end, 'all')
+    end)
+
+    if not ok then cb(nil, nil) end
+end
+
+local function normalizeSpawnCoords(value)
+    local ok, x, y, z, w = pcall(function()
+        return tonumber(value and value.x), tonumber(value and value.y), tonumber(value and value.z), tonumber(value and (value.w or value.h or value.heading))
+    end)
+    if not ok or not x or not y or not z then
+        safePrint('invalid spawn coordinates; using airport fallback')
+        return vector4(-1037.65, -2737.84, 20.17, 330.0)
+    end
+    return vector4(x, y, z, w or 0.0)
+end
+local function preloadSpawnScene(c)
+    -- Force the GTA scene to stream before returning to gameplay.
+    pcall(function()
+        SetFocusPosAndVel(c.x + 0.0, c.y + 0.0, c.z + 0.0, 0.0, 0.0, 0.0)
+        RequestCollisionAtCoord(c.x + 0.0, c.y + 0.0, c.z + 0.0)
+    end)
+    pcall(function()
+        NewLoadSceneStartSphere(c.x + 0.0, c.y + 0.0, c.z + 0.0, 80.0, 0)
+    end)
+    local deadline = GetGameTimer() + 2500
+    while GetGameTimer() < deadline do
+        RequestCollisionAtCoord(c.x + 0.0, c.y + 0.0, c.z + 0.0)
+        local active = false
+        pcall(function() active = IsNewLoadSceneActive() end)
+        if not active then break end
+        Wait(0)
+    end
+    pcall(function() NewLoadSceneStop() end)
+    pcall(function() ClearFocus() end)
+end
+local function forceEmergencySpawn(c, label, reason)
+    c = normalizeSpawnCoords(c)
+    safePrint('spawn flow emergency recovery reason='..tostring(reason or 'unknown')..' coords='..tostring(c.x)..','..tostring(c.y)..','..tostring(c.z))
+    local ped = PlayerPedId()
+    pcall(function()
+        if type(DestroyAllCams) == 'function' then DestroyAllCams(true) end
+        RenderScriptCams(false, false, 0, true, true)
+        ClearFocus()
+        ClearTimecycleModifier()
+        if type(AnimpostfxStopAll) == 'function' then AnimpostfxStopAll() end
+    end)
+    NetworkResurrectLocalPlayer(c.x + 0.0, c.y + 0.0, c.z + 0.0, c.w or 0.0, true, true, false)
+    ped = PlayerPedId()
+    SetEntityCoordsNoOffset(ped, c.x + 0.0, c.y + 0.0, c.z + 0.0, false, false, false)
+    SetEntityHeading(ped, c.w or 0.0)
+    ClearPedTasksImmediately(ped)
+    FreezeEntityPosition(ped, false)
+    SetEntityVisible(ped, true, false)
+    SetEntityAlpha(ped, 255, false)
+    SetEntityCollision(ped, true, true)
+    SetEntityCanBeDamaged(ped, true)
+    SetPlayerInvincible(PlayerId(), false)
+    SetPlayerControl(PlayerId(), true, 0)
+    SetNuiFocus(false, false)
+    ClearFocus()
+    releaseSpawnLock()
+    ShutdownLoadingScreen()
+    ShutdownLoadingScreenNui()
+    spawnPending = false
+    spawnActionStartedAt = 0
+    spawnOnlyAirport = false
+    DoScreenFadeIn(0)
+    if GetResourceState('dc-worldmanager') == 'started' then
+        TriggerServerEvent('dc-worldmanager:server:ForcePublicAfterCharacterSpawn', 'emergency-recovery')
+    end
+    if not playerLoadedFinalized then
+        playerLoadedFinalized = true
+        TriggerServerEvent('QBCore:Server:OnPlayerLoaded')
+    end
+    safeNotify('Spawn recovery complete. You are now in the city.', 'success')
+    TriggerEvent('dc-newplayer:client:SpawnSelected', 'airport-recovery')
+end
+
+local function finishSpawnAt(c, label, spawnId)
+    c = normalizeSpawnCoords(c)
+    safePrint('spawn flow finishSpawnAt id='..tostring(spawnId or 'unknown')..' label='..tostring(label or '')..' coords='..tostring(c.x)..','..tostring(c.y)..','..tostring(c.z))
+
+    local function finalizePublicSpawn()
+        local ped = PlayerPedId()
+    
+        DoScreenFadeOut(250)
+        Wait(300)
+        preloadSpawnScene(c)
+        safePrint('spawn flow scene preload complete')
+        RequestCollisionAtCoord(c.x + 0.0, c.y + 0.0, c.z + 0.0)
+
+        -- Recreate the local player state on every final spawn. Character selection can
+        -- leave a non-dead ped hidden/frozen, and a simple coordinate move does not
+        -- restore the native gameplay renderer in that state.
+        NetworkResurrectLocalPlayer(c.x + 0.0, c.y + 0.0, c.z + 0.0, c.w or 0.0, true, true, false)
+        ped = PlayerPedId()
+
+        SetEntityCoordsNoOffset(ped, c.x + 0.0, c.y + 0.0, c.z + 0.0, false, false, false)
+        SetEntityHeading(ped, c.w or 0.0)
+        RequestCollisionAtCoord(c.x + 0.0, c.y + 0.0, c.z + 0.0)
+        local collisionDeadline = GetGameTimer() + 2500
+        while not HasCollisionLoadedAroundEntity(ped) and GetGameTimer() < collisionDeadline do
+            RequestCollisionAtCoord(c.x + 0.0, c.y + 0.0, c.z + 0.0)
+            Wait(50)
+        end
+        FreezeEntityPosition(ped, false)
+        SetEntityVisible(ped, true, false)
+        SetEntityAlpha(ped, 255, false)
+        SetPlayerInvincible(PlayerId(), false)
+        ClearPedTasksImmediately(ped)
+        SetNuiFocus(false, false)
+        ClearFocus()
+        releaseSpawnLock()
+        safePrint('spawn flow player unlock complete')
+        ShutdownLoadingScreen()
+        ShutdownLoadingScreenNui()
+    
+        spawnPending = false
+        spawnActionStartedAt = 0
+        spawnOnlyAirport = false
+        scheduleSpawnRelease()
+        scheduleNativeSpawnFallback(c, spawnId)
+        Wait(250)
+        DoScreenFadeIn(500)
+
+        -- Final native-render watchdog. This only runs for the short hand-off window
+        -- and prevents a stale scripted camera/focus/fade from leaving a black world.
+        CreateThread(function()
+            local deadline = GetGameTimer() + 8000
+            while GetGameTimer() < deadline do
+                if darkCityNoClipActive() then
+                    Wait(0)
+                else
+                    local currentPed = PlayerPedId()                pcall(function() RenderScriptCams(false, false, 0, true, true) end)
+                pcall(function() DestroyAllCams(true) end)
+                pcall(function() StopPlayerSwitch() end)
+                pcall(function() NetworkSetInSpectatorMode(false, currentPed) end)
+                    pcall(function() ClearFocus() end)
+                    if DoesEntityExist(currentPed) then
+                        pcall(function() SetFocusEntity(currentPed) end)
+                    SetPlayerControl(PlayerId(), true, 0)
+                    FreezeEntityPosition(currentPed, false)
+                    SetEntityVisible(currentPed, true, false)
+                    SetEntityAlpha(currentPed, 255, false)
+                    SetEntityCollision(currentPed, true, true)
+                    pcall(function() SetLocalPlayerVisibleLocally(true) end)
+                    pcall(function() SetPlayerVisibleLocally(PlayerId(), true) end)
+                    pcall(function() SetGameplayCamFollowPedThisUpdate() end)
+                    local currentCoords = GetEntityCoords(currentPed)
+                    RequestCollisionAtCoord(currentCoords.x, currentCoords.y, currentCoords.z)
+                end
+                SetNuiFocus(false, false)
+                if IsScreenFadedOut() or IsScreenFadingOut() then DoScreenFadeIn(0) end
+                pcall(function() ForceGameplayCamRenderingThisUpdate() end)
+                    Wait(0)
+                end
+            end
+            pcall(function() ClearFocus() end)
+            pcall(function() ActivateGameplayCam(true) end)
+            pcall(function() DisplayHud(true) end)
+            pcall(function() DisplayRadar(true) end)
+            DoScreenFadeIn(0)
+        end)
+    
+        if not playerLoadedFinalized then
+            playerLoadedFinalized = true
+            -- The server event is the single source of truth; qb-core then sends the
+            -- client OnPlayerLoaded event exactly once. Firing the client event here
+            -- as well caused duplicate initialization for HUD/new-player/identity flows.
+            TriggerServerEvent('QBCore:Server:OnPlayerLoaded')
+        end
+    
+        safeNotify('Spawned: '..tostring(label or 'Selected Location'), 'success')
+    
+        -- Tutorial autostart is tied to the explicit spawn choice, not generic PlayerLoaded.
+        -- This prevents unfinished/newbie tutorials from opening at Last Location, Org or House spawns.
+        TriggerEvent('dc-newplayer:client:SpawnSelected', tostring(spawnId or 'unknown'))
+    end
+
+    -- Do not block the visual spawn on a routing-bucket callback. The server
+    -- dimension request is sent first, while the client finalizes immediately.
+    if GetResourceState('dc-worldmanager') == 'started' then
+        TriggerServerEvent('dc-worldmanager:server:ForcePublicAfterCharacterSpawn', tostring(spawnId or 'unknown'))
+    end
+    local ok, err = pcall(finalizePublicSpawn)
+    if not ok then
+        safePrint('spawn flow finalize error: '..tostring(err))
+        forceEmergencySpawn(c, label, 'finalize-error')
+    end
+end
+
+local function doSpawn(id)
+    id = tostring(id or 'last')
+    safePrint('spawn flow doSpawn id='..id..' pending='..tostring(spawnPending))
+    spawnActionStartedAt = GetGameTimer()
+    if spawnOnlyAirport and id ~= 'airport' then id = 'airport' end
+    CreateThread(function()
+        -- A confirmed card click must close the NUI even while spawnPending is true.
+        -- closeUi() intentionally refuses accidental Escape/M-menu closes in this state.
+        uiOpen = false
+        SetNuiFocus(false, false)
+        nui({ action = 'close' })
+        Wait(150)
+
+        local selected = nil
+
+        if id == 'last' then
+            local saved = getSavedPosition()
+            if saved then
+                selected = { id = 'last', label = 'Last Location', coords = saved }
+            else
+                local fallback = getFallbackSpawn()
+                selected = { id = fallback.id, label = fallback.label or 'Default Spawn', coords = fallback.coords }
+            end
+        else
+            for _, s in ipairs(Config.Spawns or {}) do
+                if tostring(s.id) == id then
+                    selected = s
+                    break
+                end
+            end
+        end
+
+        if id == 'organization' then
+            QBCore.Functions.TriggerCallback('dc-core-ui:server:GetFactionRoute', function(route)
+                route = route or {}
+                local routeName = tostring(route.name or ''):lower()
+                local coords = Config.OrgSpawns and Config.OrgSpawns[routeName]
+                local label = route.label or routeName
+                if not coords then coords, label = getOrganizationSpawn() end
+                if coords then
+                    finishSpawnAt(coords, label or 'Organization', 'organization')
+                else
+                    spawnPending = false
+                    safeNotify('You are not in an organization or gang with a spawn location.', 'error')
+                    openUi('spawnSelect')
+                end
+            end)
+            return
+        end
+
+        if id == 'house' then
+            resolveHouseSpawn(function(coords, label)
+                if coords then
+                    finishSpawnAt(coords, label or 'House', 'house')
+                else
+                    spawnPending = false
+                    safeNotify('You do not have an available house spawn.', 'error')
+                    openUi('spawnSelect')
+                end
+            end)
+            return
+        end
+
+        if selected and selected.coords then
+            safePrint('spawn flow selected id='..tostring(selected.id or id)..' label='..tostring(selected.label or '')..' coords='..tostring(selected.coords.x)..','..tostring(selected.coords.y)..','..tostring(selected.coords.z))
+        end
+
+        if not selected or not selected.coords then
+            local fallback = getFallbackSpawn()
+            selected = { id = fallback.id, label = fallback.label or 'Default Spawn', coords = fallback.coords }
+            safePrint('spawn location missing for id '..id..'; using fallback')
+        end
+
+        finishSpawnAt(selected.coords, selected.label or id, selected.id or id)
+    end)
+end
+
+local function safeRegisterNui(name, handler)
+    RegisterNUICallback(name, function(data, cb)
+        local ok, err = pcall(function()
+            handler(data or {}, cb)
+        end)
+        if not ok then
+            safePrint('NUI callback '..name..' error: '..tostring(err))
+            safeNotify('UI error in '..name..'. Check F8 console.', 'error')
+            pcall(function()
+                cb({ ok = false, error = tostring(err) })
+            end)
+        end
+    end)
+end
+
+exports('Open', openUi)
+exports('Close', closeUi)
+
+RegisterCommand('mmenu', function()
+    openUi(Config.DefaultView or 'statisticsTab')
+end, false)
+
+RegisterCommand('mfix', function()
+    closeUi()
+    Wait(250)
+    openUi(Config.DefaultView or 'statisticsTab')
+end, false)
+
+-- M is mapped only once through Config.Commands.Open below.
+
+
+RegisterNetEvent('dc-core-ui:client:Open', openUi)
+RegisterNetEvent('dc-core-ui:client:Close', closeUi)
+
+RegisterNetEvent('dc-core-ui:client:OpenSpawnSelect', function(options)
+    options = options or {}
+    -- If a previous open attempt was interrupted by a resource restart/race, allow a clean retry.
+    if spawnPending and uiOpen then return end
+    spawnPending = true
+    spawnUiOpenedAt = GetGameTimer()
+    spawnSelectShownThisSession = true
+    playerLoadedFinalized = false
+    spawnOnlyAirport = options.newOnlyAirport == true
+    CreateThread(function()
+        Wait(50)
+        currentView = 'spawnSelect'
+        cbData('spawnSelect', function(data)
+            data = data or {}
+            if spawnOnlyAirport then
+                local airport = nil
+                for _, item in ipairs(data.spawns or {}) do
+                    if tostring(item.id) == 'airport' then airport = item break end
+                end
+                data.spawns = { airport or { id = 'airport', label = 'Airport', icon = '✈️' } }
+            end
+            uiOpen = true
+            spawnUiOpenedAt = GetGameTimer()
+            SetNuiFocus(true, true)
+            nui({ action = 'open', view = 'spawnSelect', data = data })
+        end)
+    end)
+    -- Re-open once if the first NUI message was lost while dc-core-ui was restarting.
+    SetTimeout(3000, function()
+        if spawnPending and not uiOpen and spawnActionStartedAt <= 0 then
+            spawnPending = false
+            TriggerEvent('dc-core-ui:client:OpenSpawnSelect', options)
+        end
+    end)
+end)
+
+RegisterNetEvent('dc-core-ui:client:Refresh', function(view)
+    local ok, err = pcall(function()
+        local v = viewName(view or currentView)
+        dataCache[v] = nil
+        cbData(v, function(data)
+            nui({ action = 'data', view = v, data = data })
+        end)
+    end)
+    if not ok then
+        safePrint('Refresh error: '..tostring(err))
+    end
+end)
+
+
+RegisterNetEvent('dc-core-ui:client:ClearCache', function(view)
+    local v = viewName(view or currentView)
+    dataCache[v] = nil
+end)
+
+RegisterNetEvent('dc-core-ui:client:HardRefresh', function()
+    closeUi()
+    Wait(200)
+    openUi(Config.DefaultView or 'statisticsTab')
+end)
+
+safeRegisterNui('close', function(_, cb)
+    if spawnPending then
+        cb({ ok = false, reason = 'spawn_required' })
+        return
+    end
+    closeUi()
+    cb({ ok = true })
+end)
+
+safeRegisterNui('switchView', function(data, cb)
+    local v = viewName(data.view or Config.DefaultView or 'statisticsTab')
+    currentView = v
+
+    -- Reply immediately so browser fetch() never fails while SQL/data is loading.
+    pcall(function() cb({ ok = true }) end)
+
+    CreateThread(function()
+        cbData(v, function(d)
+            if uiOpen and currentView == v then
+                nui({ action = 'data', view = v, data = d })
+            end
+        end)
+    end)
+end)
+
+safeRegisterNui('getData', function(data, cb)
+    local v = viewName(data.view or currentView)
+
+    -- Reply immediately. Holding a browser fetch open while SQL/server callbacks run can
+    -- produce "TypeError: Failed to fetch" during spawn/focus transitions.
+    cb({ ok = true, pending = true })
+
+    CreateThread(function()
+        cbData(v, function(d)
+            if uiOpen and currentView == v then
+                nui({ action = 'data', view = v, data = d })
+            end
+        end)
+    end)
+end)
+
+safeRegisterNui('setWaypoint', function(data, cb)
+    setWaypoint(data)
+    cb({ ok = true })
+end)
+
+safeRegisterNui('openOrg', function(_, cb)
+    openOrgMenu()
+    cb({ ok = true })
+end)
+
+safeRegisterNui('dailyStart', function(data, cb)
+    local tier = tostring(data.tier or '')
+    TriggerServerEvent('dc-core-ui:server:DailyStart', tier)
+    cb({ ok = true })
+
+    CreateThread(function()
+        Wait(700)
+        cbData('dailyReward', function(d)
+            currentView = 'dailyReward'
+            nui({ action = 'data', view = 'dailyReward', data = d })
+        end)
+    end)
+end)
+
+safeRegisterNui('spawnSelect', function(data, cb)
+    safePrint('spawn flow NUI spawnSelect received id='..tostring(data.id or data.spawn or data.spawnloc or 'last'))
+    doSpawn(data.id or data.spawn or data.spawnloc or 'last')
+    cb({ ok = true })
+end)
+
+-- Accept alternate callback names too. This makes the UI safe even if an older/newer HTML
+-- build sends a different callback name.
+safeRegisterNui('selectSpawn', function(data, cb)
+    safePrint('spawn flow NUI selectSpawn received id='..tostring(data.id or data.spawn or data.spawnloc or 'last'))
+    doSpawn(data.id or data.spawn or data.spawnloc or 'last')
+    cb({ ok = true })
+end)
+
+safeRegisterNui('spawn_select', function(data, cb)
+    safePrint('spawn flow NUI spawn_select received id='..tostring(data.id or data.spawn or data.spawnloc or 'last'))
+    doSpawn(data.id or data.spawn or data.spawnloc or 'last')
+    cb({ ok = true })
+end)
+
+safeRegisterNui('action', function(data, cb)
+    local action = tostring(data.action or '')
+    local payload = data.data or {}
+
+    if action == 'set_waypoint' then
+        setWaypoint(payload)
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'house_open_menu' then
+        closeUi()
+        cb({ ok = true })
+        CreateThread(function()
+            Wait(220)
+            TriggerEvent('dc-housing:client:OpenMenu')
+        end)
+        return
+    end
+
+    if action == 'job_start' then
+        local cmd = tostring(payload.cmd or '')
+        if payload.x and payload.y then
+            setWaypoint({ x = payload.x, y = payload.y, label = payload.label or cmd or 'Job' })
+        end
+        if cmd ~= '' then
+            CreateThread(function()
+                Wait(250)
+                pcall(function() ExecuteCommand(cmd) end)
+            end)
+        end
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'open_org' then
+        openOrgMenu()
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'setting_ui_scale' then
+        local scale = math.max(80, math.min(130, math.floor(tonumber(payload.value or 100) or 100)))
+        saveSetting('ui_scale', scale)
+        cb({ ok = true, value = scale })
+        return
+    end
+
+    if action == 'setting_hud_toggle' then
+        saveSetting('hud_enabled', not hudVisible)
+        cb({ ok = true, value = hudVisible })
+        return
+    end
+
+    if action == 'setting_voice_cycle' then
+        if GetResourceState('pma-voice') == 'started' then
+            ExecuteCommand('cycleproximity')
+            safeNotify('Voice proximity mode cycled.', 'success')
+        else
+            safeNotify('Voice system is not available.', 'error')
+        end
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'setting_graphics_toggle' then
+        local nextPreset = graphicsPreset == 'cinematic' and 'balanced' or 'cinematic'
+        saveSetting('graphics_preset', nextPreset)
+        safeNotify('Graphics preset: '..nextPreset, 'success')
+        cb({ ok = true, value = nextPreset })
+        return
+    end
+
+    if action == 'setting_privacy_toggle' then
+        saveSetting('privacy_hide_id', not privacyHideId)
+        safeNotify(privacyHideId and 'Privacy ID masking enabled.' or 'Privacy ID masking disabled.', 'success')
+        cb({ ok = true, value = privacyHideId })
+        return
+    end
+
+    if action == 'setting_save' then
+        local key = tostring(payload.key or '')
+        local value = payload.value
+        if key ~= '' then
+            saveSetting(key, value)
+            cb({ ok = true })
+        else
+            cb({ ok = false })
+        end
+        return
+    end
+
+    if action == 'setting_reset_defaults' then
+        TriggerServerEvent('dc-core-ui:server:Action', { action = 'option_reset', data = {} })
+        dataCache['settings'] = nil
+        applyClientOptions({})
+        safeNotify('Settings reset to defaults.', 'success')
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'open_password_reset' then
+        closeUi()
+        cb({ ok = true })
+        CreateThread(function()
+            Wait(180)
+            TriggerEvent('dc-character:client:OpenPasswordReset')
+        end)
+        return
+    end
+
+    if action == 'remove_remember_password' then
+        TriggerServerEvent('dc-character:server:ForgetRememberPassword')
+        safeNotify('Remembered password removal requested.', 'success')
+        cb({ ok = true })
+        return
+    end
+    if action == 'daily_start' then
+        TriggerServerEvent('dc-core-ui:server:DailyStart', tostring(payload.tier or ''))
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'store_purchase' then
+        local productKey = tostring(payload.productKey or payload.key or '')
+        if productKey ~= '' then
+            TriggerServerEvent('dc-darkstore:server:Purchase', productKey)
+            dataCache['darkStore'] = nil
+        end
+        cb({ ok = productKey ~= '' })
+        return
+    end
+
+    if action == 'bp_claim' then
+        TriggerServerEvent('dc-battlepass:server:ClaimReward', tonumber(payload.rewardId or payload.id or 0) or 0)
+        dataCache['battlePass'] = nil
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'bp_claim_all' then
+        TriggerServerEvent('dc-battlepass:server:ClaimAll')
+        dataCache['battlePass'] = nil
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'referral_bind' then
+        local code = tostring(payload.code or '')
+        TriggerServerEvent('dc-referral:server:BindCode', code)
+        dataCache['referral'] = nil
+        cb({ ok = code ~= '' })
+        return
+    end
+
+    if action == 'referral_claim_all' then
+        TriggerServerEvent('dc-referral:server:ClaimRewards')
+        dataCache['referral'] = nil
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'prime_claim_daily' then
+        TriggerServerEvent('dc-prime:server:ClaimDaily')
+        dataCache['prime'] = nil
+        dataCache['darkStore'] = nil
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'prime_purchase' then
+        local productKey = tostring(payload.productKey or payload.key or '')
+        if productKey ~= '' then
+            TriggerServerEvent('dc-darkstore:server:Purchase', productKey)
+            dataCache['prime'] = nil
+            dataCache['darkStore'] = nil
+        end
+        cb({ ok = productKey ~= '' })
+        return
+    end
+    if action:find('family_') == 1 then
+        dataCache['familyMenu'] = nil
+        TriggerServerEvent('dc-life:server:Action', { action = action, data = payload })
+        cb({ ok = true })
+        CreateThread(function()
+            Wait(900)
+            dataCache['familyMenu'] = nil
+            currentView = 'familyMenu'
+            cbData('familyMenu', function(d)
+                nui({ action = 'data', view = 'familyMenu', data = d })
+            end)
+        end)
+        return
+    end
+
+
+    if action == 'report_create' then
+        local title = tostring(payload.title or ''):gsub('^%s+', ''):gsub('%s+$', '')
+        local msg = tostring(payload.message or ''):gsub('^%s+', ''):gsub('%s+$', '')
+        local reportMsg = title
+        if msg ~= '' then reportMsg = (reportMsg ~= '' and (reportMsg .. ' - ' .. msg)) or msg end
+        if reportMsg ~= '' then
+            TriggerServerEvent('dc-reports:server:CreateReport', reportMsg)
+        end
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'report_reply' then
+        local reportId = tonumber(payload.reportId or payload.id or 0) or 0
+        local msg = tostring(payload.message or ''):gsub('^%s+', ''):gsub('%s+$', '')
+        if reportId > 0 and msg ~= '' then
+            TriggerServerEvent('dc-reports:server:PlayerReplyReport', reportId, msg)
+        end
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'report_rate' then
+        TriggerServerEvent('dc-reports:server:RateReport', tonumber(payload.reportId or payload.id or 0) or 0, tonumber(payload.rating or 0) or 0)
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'spawn_select' then
+        doSpawn(payload.id or 'last')
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'auth_ok' then
+        cb({ ok = true })
+        CreateThread(function()
+            Wait(80)
+            -- Open spawn select with full NUI focus. Using action='open' avoids a cursor/focus bug
+            -- where the spawn page is visible but buttons do not receive clicks.
+            openUi('spawnSelect')
+        end)
+        return
+    end
+
+    if action == 'create_character' then
+        closeUi()
+        CreateThread(function()
+            Wait(150)
+            -- Open actual Dark City character creator instead of only showing placeholder customization page.
+            pcall(function() TriggerEvent('dc-character:client:ForceOpen') end)
+            pcall(function() TriggerServerEvent('dc-character:server:RequestCharacters') end)
+        end)
+        cb({ ok = true })
+        return
+    end
+
+    if action == 'open_clothing' then
+        closeUi()
+        CreateThread(function()
+            Wait(150)
+            pcall(function() TriggerEvent('qb-clothing:client:openMenu') end)
+            pcall(function() TriggerEvent('qb-clothes:client:CreateFirstCharacter') end)
+        end)
+        cb({ ok = true })
+        return
+    end
+
+    TriggerServerEvent('dc-core-ui:server:Action', { action = action, data = payload })
+    cb({ ok = true })
+end)
+
+RegisterCommand(Config.Commands.Open or 'dcui', function(_, args)
+    openUi(args[1] or Config.DefaultView or 'statisticsTab')
+end)
+RegisterKeyMapping(Config.Commands.Open or 'dcui', 'Dark City M Menu', 'keyboard', Config.OpenKey or 'M')
+
+RegisterCommand(Config.Commands.Bank or 'bank', function()
+    openUi('bank')
+end)
+
+RegisterCommand(Config.Commands.Inventory or 'invui', function()
+    openUi('inventory')
+end)
+
+RegisterCommand(Config.Commands.Report or 'report', function()
+    openUi('contactAdmin')
+end)
+
+RegisterCommand(Config.Commands.Passport or 'passport', function()
+    openUi('passport')
+end)
+
+-- Debug/test helpers for spawn UI issues.
+RegisterCommand('openspawn', function()
+    openUi('spawnSelect')
+end, false)
+
+RegisterCommand('fixspawn', function()
+    CreateThread(function()
+        print('[dc-core-ui] /fixspawn normal spawn recovery started')
+        spawnPending = false
+        spawnActionStartedAt = 0
+        spawnOnlyAirport = false
+        currentView = Config.DefaultView or 'statisticsTab'
+        uiOpen = false
+        SetNuiFocus(false, false)
+        nui({ action = 'close' })
+        if type(DestroyAllCams) == 'function' then pcall(function() DestroyAllCams(true) end) end
+        pcall(function() RenderScriptCams(false, false, 0, true, true) end)
+        pcall(function() StopPlayerSwitch() end)
+        pcall(function() NetworkSetInSpectatorMode(false, PlayerPedId()) end)
+        pcall(function() SetCinematicModeActive(false) end)
+        pcall(function() StopGameplayCamShaking(true) end)
+        pcall(function() ClearTimecycleModifier() end)
+        finishSpawnAt(vector4(-1037.65, -2737.84, 20.17, 330.0), 'Airport Recovery', 'airport')
+        print('[dc-core-ui] /fixspawn normal spawn recovery finished')
+    end)
+end, false)
+RegisterCommand('forcespawn', function(_, args)
+    doSpawn(args[1] or 'airport')
+end, false)
+
+RegisterCommand(Config.Commands.Hud or 'togglehud', function()
+    hudVisible = not hudVisible
+    nui({ action = 'hudVisible', value = hudVisible })
+end)
+
+RegisterNetEvent('dc-core-ui:client:Spawn', function(id)
+    doSpawn(id or 'last')
+end)
+
+RegisterNetEvent('dc-core-ui:client:RespawnHospital', function()
+    -- dc-ambulance owns the authoritative death screen and timer.
+    if GetResourceState('dc-ambulance') == 'started' then
+        safeNotify('Use the Dark City death screen; hospital respawn unlocks after the timer.', 'error')
+        return
+    end
+    local ok, err = pcall(function()
+        local ped = PlayerPedId()
+        local c = Config.HospitalRespawn
+        DoScreenFadeOut(500)
+        Wait(800)
+        NetworkResurrectLocalPlayer(c.x, c.y, c.z, c.w or 0.0, true, false)
+        SetEntityHealth(ped, 200)
+        ClearPedBloodDamage(ped)
+        SetEntityCoords(ped, c.x, c.y, c.z, false, false, false, true)
+        SetEntityHeading(ped, c.w or 0.0)
+        DoScreenFadeIn(500)
+        closeUi()
+    end)
+    if not ok then
+        safePrint('RespawnHospital error: '..tostring(err))
+    end
+end)
+
+-- Safety: never leave ordinary players permanently invincible after a resource/update.
+-- Green-zone protection remains authoritative when dc-worldmanager reports a green zone.
+CreateThread(function()
+    while true do
+        Wait(1500)
+        local ped = PlayerPedId()
+        if ped and ped ~= 0 and not IsEntityDead(ped) then
+            local green = false
+            if GetResourceState('dc-worldmanager') == 'started' then
+                local ok, zone = pcall(function() return exports['dc-worldmanager']:GetCurrentZone() end)
+                if ok and tostring(zone or '') == 'green' then green = true end
+            end
+            if not green and GetPlayerInvincible(PlayerId()) then
+                SetPlayerInvincible(PlayerId(), false)
+                SetEntityInvincible(ped, false)
+                SetEntityCanBeDamaged(ped, true)
+                SetEntityProofs(ped, false, false, false, false, false, false, false, false)
+            end
+        end
+    end
+end)
+
+CreateThread(function()
+    while true do
+        if Config.HudEnabled and hudVisible then
+            cbData('hud', function(data)
+                nui({ action = 'hud', data = data })
+            end)
+        end
+        Wait(Config.HudRefreshMs or 1000)
+    end
+end)
+
+CreateThread(function()
+    while true do
+        local ok, err = pcall(function()
+            local ped = PlayerPedId()
+            if IsEntityDead(ped) and not lastDeathShown then
+                lastDeathShown = true
+                cbData('deathScreen', function(data)
+                    -- Death screen must replace any open M Menu view.
+                    uiOpen = false
+                    SetNuiFocus(false, false)
+                    nui({ action = 'close' })
+                    Wait(80)
+                    SetNuiFocus(true, true)
+                    nui({ action = 'open', view = 'deathScreen', data = data })
+                end)
+            elseif not IsEntityDead(ped) and lastDeathShown then
+                lastDeathShown = false
+                nui({ action = 'deathOff' })
+            end
+        end)
+        if not ok then
+            safePrint('death thread error: '..tostring(err))
+        end
+        Wait(750)
+    end
+end)
+
+RegisterNetEvent('QBCore:Client:OnPlayerLoaded', function()
+    CreateThread(function()
+        Wait(Config.AuthDelayMs or 2500)
+        hudVisible = true
+        loadPersistentSettings('player-loaded')
+        cbData('hud', function(data)
+            nui({ action = 'hud', data = data })
+        end)
+
+        -- Spawn Select is opened only by dc-character before the final spawn.
+        -- PlayerLoaded now initializes HUD/auth only, preventing duplicate spawn menus.
+
+        -- Keep old auth available only when spawn selector is disabled manually later.
+        if Config.AuthOnJoin and not authShownThisSession and Config.ForceAuthInsteadOfSpawn then
+            authShownThisSession = true
+            openUi('auth')
+        end
+    end)
+end)
+
+-- Spawn recovery watchdog: prevents a missed NUI/resource event from leaving the player in a permanent black fade.
+CreateThread(function()
+    Wait(12000)
+    while true do
+        Wait(1500)
+        local pd = QBCore.Functions.GetPlayerData() or {}
+        if pd.citizenid and pd.citizenid ~= '' then
+            if spawnPending and uiOpen and spawnUiOpenedAt > 0 and (GetGameTimer() - spawnUiOpenedAt) > 5000 then
+                -- Repaint a lost NUI canvas without unlocking the mandatory spawn hand-off.
+                SetNuiFocus(true, true)
+                nui({ action = 'open', view = 'spawnSelect', data = fallbackData('spawnSelect') })
+                spawnUiOpenedAt = GetGameTimer()
+            elseif not spawnPending and not uiOpen then
+                local ped = PlayerPedId()
+                if IsScreenFadedOut() or not IsEntityVisible(ped) then
+                    releaseSpawnLock()
+                    ShutdownLoadingScreen()
+                    ShutdownLoadingScreenNui()
+                end
+            end
+        end
+    end
+end)
+
+AddEventHandler('onResourceStart', function(resourceName)
+    if resourceName == GetCurrentResourceName() then
+        CreateThread(function()
+            -- Resource may be restarted while the player is already online,
+            -- in which case QBCore:Client:OnPlayerLoaded will not fire again.
+            for _ = 1, 40 do
+                local pd = QBCore.Functions.GetPlayerData() or {}
+                if pd.citizenid and pd.citizenid ~= '' then
+                    Wait(1500)
+                    loadPersistentSettings('core-resource-start')
+                    releaseSpawnLock()
+                    return
+                end
+                Wait(500)
+            end
+        end)
+    elseif resourceName == 'dc-chat' then
+        SetTimeout(750, function()
+            if appliedSettings.chat_visible ~= nil then applyClientSetting('chat_visible', appliedSettings.chat_visible) end
+            if appliedSettings.chat_scale ~= nil then applyClientSetting('chat_scale', appliedSettings.chat_scale) end
+            if appliedSettings.chat_vertical ~= nil then applyClientSetting('chat_vertical', appliedSettings.chat_vertical) end
+        end)
+    elseif resourceName == 'dc-notify' then
+        SetTimeout(750, function()
+            if appliedSettings.notification_position ~= nil then applyClientSetting('notification_position', appliedSettings.notification_position) end
+            if appliedSettings.notification_sound ~= nil then applyClientSetting('notification_sound', appliedSettings.notification_sound) end
+            if adminCinematic.active then
+                cinematicNotifyVisibility(not adminCinematic.flags.notifications)
+                cinematicTutorialVisibility(not adminCinematic.flags.hud)
+            end
+        end)
+    end
+end)
+
+RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
+    settingsLoadSerial = settingsLoadSerial + 1
+    dataCache['settings'] = nil
+    appliedSettings = {}
+    if adminCinematic.active then
+        cinematicRestore()
+    else
+        DisplayHud(true)
+    end
+end)
+
+RegisterNetEvent('dc-core-ui:client:ReloadSettings', function()
+    loadPersistentSettings('server-request')
+end)
+
+RegisterNetEvent('dc-core-ui:client:ShowSharedNumber', function(data)
+    data = type(data) == 'table' and data or {}
+    nui({
+        action = 'phase1:sharedNumber',
+        name = tostring(data.name or 'Nearby player'),
+        number = tostring(data.number or ''),
+        duration = math.max(3, math.min(30, tonumber(data.duration or 10) or 10))
+    })
+end)
+
+print('[dc-core-ui] V5.18 persistent citizen settings + resource restart restore loaded')
+
+CreateThread(function() Wait(1000) print('[dc-core-ui] V5.15 family displayed-ID fix client active') end)
+
+
+-- Family livefix manual refresh command
+RegisterCommand('familyrefresh', function()
+    dataCache['familyMenu'] = nil
+    if uiOpen then
+        cbData('familyMenu', function(data)
+            nui({ action = 'data', view = 'familyMenu', data = data })
+        end)
+    else
+        openUi('familyMenu')
+    end
+end, false)
+
+RegisterNetEvent('dc-core-ui:client:ForceFamilyRefresh', function()
+    dataCache['familyMenu'] = nil
+    cbData('familyMenu', function(data)
+        nui({ action = 'data', view = 'familyMenu', data = data })
+    end)
+end)
+
+-- Dark City RP: unlimited running stamina.
+-- Restore every frame so sprint stamina never drains while running.
+CreateThread(function()
+    while true do
+        RestorePlayerStamina(PlayerId(), 1.0)
+        Wait(0)
+    end
+end)
+
+
+
+-- Settings V16 live preference loop.
+CreateThread(function()
+    local lastRadarState = nil
+    while true do
+        local showRadar = false
+        if minimapMode == 'always' then
+            showRadar = true
+        elseif minimapMode == 'vehicle' then
+            showRadar = IsPedInAnyVehicle(PlayerPedId(), false)
+        end
+
+        if adminCinematic.active and adminCinematic.flags.map then showRadar = false end
+        DisplayRadar(showRadar)
+        SetRadarBigmapEnabled(false, false)
+        lastRadarState = showRadar
+        Wait(0)
+    end
+end)
+
+CreateThread(function()
+    while true do
+        if adminCinematic.active then
+            DisplayHud(not adminCinematic.flags.nativeHud)
+            Wait(0)
+        else
+            Wait(500)
+        end
+    end
+end)
+RegisterNetEvent('QBCore:Client:OnPlayerUnload', function()
+    DisplayRadar(false)
+end)
+
+
+
+
+
+
+-- [dc-core-ui] stuck spawn timeout recovery.
+-- dc-character hides/freezes the player until spawn selection completes. If a
+-- worldmanager callback/NUI race drops the completion, restore gameplay instead
+-- of leaving the client on a black screen forever.
+CreateThread(function()
+    Wait(3000)
+    while true do
+        Wait(1000)
+        if spawnPending and not uiOpen and spawnActionStartedAt > 0 then
+            if (GetGameTimer() - spawnActionStartedAt) > 6000 then
+                spawnPending = false
+                spawnActionStartedAt = 0
+                currentView = Config.DefaultView or 'statisticsTab'
+                forceEmergencySpawn(vector4(-1037.65, -2737.84, 20.17, 330.0), 'Airport Recovery', 'spawn-timeout')
+            end
+        end
+    end
+end)
+-- [dc-core-ui] resource stop cleanup.
+-- A restart must never leave the client in the old spawn fade/camera/focus state.
+AddEventHandler('onResourceStop', function(resourceName)
+    if resourceName ~= GetCurrentResourceName() then return end
+    spawnPending = false
+    uiOpen = false
+    spawnActionStartedAt = 0
+    spawnOnlyAirport = false
+    if type(DestroyAllCams) == 'function' then pcall(function() DestroyAllCams(true) end) end
+    pcall(function() RenderScriptCams(false, false, 0, true, true) end)
+    pcall(function() ClearFocus() end)
+    pcall(function() ClearTimecycleModifier() end)
+    pcall(function() SetNuiFocus(false, false) end)
+    pcall(function() SendNUIMessage({ action = 'close' }) end)
+    local ped = PlayerPedId()
+    if DoesEntityExist(ped) then
+        FreezeEntityPosition(ped, false)
+        SetEntityVisible(ped, true, false)
+        SetEntityAlpha(ped, 255, false)
+        SetEntityCollision(ped, true, true)
+        SetPlayerInvincible(PlayerId(), false)
+        SetPlayerControl(PlayerId(), true, 0)
+        ClearPedTasksImmediately(ped)
+    end
+    ShutdownLoadingScreen()
+    ShutdownLoadingScreenNui()
+    DoScreenFadeIn(500)
+end)
+
+
+
+
+
+
+
+
