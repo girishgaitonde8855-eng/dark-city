@@ -719,7 +719,7 @@ function wrap(title, body, extra = ''){
   content.innerHTML = `
     <div class="title premium-title">
       <div class="titleleft">
-        <div class="page-icon">DC</div>
+        <div class="page-icon">${meta.icon || 'DC'}</div>
         <div>
           <div class="eyebrow">DARK CITY ROLEPLAY</div>
           <h1>${title}</h1>
@@ -731,21 +731,47 @@ function wrap(title, body, extra = ''){
         <div class="hero-chip">ID ${visiblePlayerId(p.player_id || 0)}</div>
         <div class="hero-chip">CASH ${money(p.cash || 0)}</div>
         <div class="hero-chip">BANK ${money(p.bank || 0)}</div>
+        ${globalNav(false)}
       </div>
     </div>
     ${extra}
     <div class="pagebody">${body}</div>
-    ${globalNav(false)}
     <div class="menu-footer">
       <span>ONLINE ${esc(server.online || 0)}/${esc(server.max || 64)}</span>
       <span>${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</span>
       <span>DARK CITY ROLEPLAY • MAIN MENU</span>
     </div>`;
-  applyLuxuryImages();
-  applyStatisticsCardImages();
-  applyModuleTabImages();
-  applySemanticPremiumImages();
-  
+  // Premium v2: the four legacy image-injection passes (applyLuxuryImages,
+  // applyStatisticsCardImages, applyModuleTabImages, applySemanticPremiumImages)
+  // painted a different photo onto every card with inline !important styles, and
+  // those photos clashed with the live text. They are no longer called.
+  // Photos now come back only as framed thumbnails (see applyPremiumThumbs).
+  applyPremiumThumbs();
+}
+// Sets a CSS variable + class on compact cards. dc_premium_v2.css draws the
+// framed thumbnail with :after and reserves padding, so no photo is ever behind text.
+function applyPremiumThumbs(){
+  const root = document.getElementById('content');
+  const view = String(state.view || '');
+  if (!root || view === 'home' || view === 'realEstate') return;
+  // Only wide, horizontal cards where a right-hand thumbnail has room. Narrow or
+  // vertical tiles (e.g. Battle Pass reward columns) are deliberately left out.
+  const selectors = [
+    '.pagebody .mini-stat','.pagebody .licence-document'
+  ];
+  Array.from(root.querySelectorAll(selectors.join(','))).forEach((card, index) => {
+    const url = asset(semanticPremiumImage(view, card.textContent, index));
+    card.classList.add('pm-thumbed');
+    card.style.setProperty('--pm-thumb', `url("${url}")`);
+  });
+  // Tall cards whose top row is only an icon: the top-right corner is empty, so a
+  // small framed photo fits there without reserving any text space.
+  const cornerSelectors = ['.pagebody .achievement-card','.pagebody .org-card','.pagebody .support-create'];
+  Array.from(root.querySelectorAll(cornerSelectors.join(','))).forEach((card, index) => {
+    const url = asset(semanticPremiumImage(view, card.textContent, index));
+    card.classList.add('pm-corner');
+    card.style.setProperty('--pm-thumb', `url("${url}")`);
+  });
 }
 function imgBox(path, cls=''){ return `<div class="media ${cls}" style="background-image:url('${asset(path)}')"></div>`; }
 function empty(text){ return `<div class="empty">${esc(text)}</div>`; }
@@ -783,53 +809,61 @@ function renderHud(data){
 function renderMMenuHome(){
   const p=state.data?.player || {};
   const server=state.data?.server || {};
-  const cards=[
-    ['statisticsTab','📊','STATISTICS','View your progress, licenses, stats and more','m-menu/statistics/statistics.jpg'],
-    ['darkStore','🛒','DARK STORE','Exclusive items, vehicles and special offers','m-menu/09_store.jpg'],
-    ['familyMenu','👨‍👩‍👧','FAMILY MENU','Build your family, manage members and grow together','m-menu/04_family.jpg'],
-    ['organization','🛡️','FACTION','Join, manage and dominate with your faction','m-menu/06_organization.jpg'],
-    ['jobs','💼','JOBS','Work, earn money and build your future','m-menu/05_jobs.jpg'],
-    ['realEstate','🏠','REAL ESTATE','Buy, sell and manage properties','m-menu/08_property.jpg'],
-    ['business','🏪','BUSINESS','Create, manage and grow your business empire','m-menu/07_business.jpg'],
-    ['battlePass','🎖️','BATTLE PASS','Complete missions, unlock rewards and become legendary','m-menu/10_battlepass.jpg'],
-    ['achievement','🏆','ACHIEVEMENTS','Complete goals and earn rewards','m-menu/11_achievement.jpg'],
-    ['referral','🤝','REFERRAL','Invite friends and earn rewards','m-menu/12_referral.jpg'],
-    ['prime','💎','PRIME','Unlock premium features and exclusive benefits','m-menu/13_prime.jpg'],
-    ['contactAdmin','🎧','CONTACT ADMIN','Get help, support and report issues','m-menu/16_admin.jpg'],
-    ['settings','⚙️','SETTINGS','Customize your Dark City experience','m-menu/14_settings.jpg']
+  // [view, icon, title, description, extraClass]
+  const modules=[
+    ['statisticsTab','📊','STATISTICS','Progress, licences, level and stats','wide'],
+    ['jobs','💼','JOBS','Work, earn and build your future',''],
+    ['achievement','🏆','ACHIEVEMENTS','Complete goals, earn rewards',''],
+    ['battlePass','🎖️','BATTLE PASS','Missions and season rewards',''],
+    ['familyMenu','👨‍👩‍👧','FAMILY','Build and manage your family',''],
+    ['organization','🛡️','FACTION','Join and lead a faction',''],
+    ['darkStore','🛒','DARK STORE','Exclusive items and vehicles',''],
+    ['realEstate','🏠','REAL ESTATE','Buy, sell and manage property',''],
+    ['business','🏪','BUSINESS','Grow your business empire',''],
+    ['prime','💎','PRIME','Premium perks and benefits',''],
+    ['referral','🤝','REFERRAL','Invite friends, earn rewards',''],
+    ['contactAdmin','🎧','SUPPORT','Contact admin, report issues',''],
+    ['settings','⚙️','SETTINGS','Customize your experience','']
   ];
-  const cardHtml=cards.map((c,i)=>`
-    <button type="button" class="dc-home-card ${i<3?'featured':''}" onclick="switchView('${c[0]}')" style="--card-art:url('${asset(c[4])}')">
-      <span class="dc-home-art"></span><span class="dc-home-overlay"></span>
-      <span class="dc-home-content">
-        <span class="dc-home-icon">${c[1]}</span>
-        <span class="dc-home-title">${c[2]}</span>
-        <span class="dc-home-desc">${c[3]}</span>
-        <span class="dc-home-open">${i===8?'VIEW':'OPEN'} <b>→</b></span>
-      </span>
+  const cardHtml=modules.map((c,i)=>`
+    <button type="button" class="pm-card ${c[4]}" style="--i:${i}" onclick="switchView('${c[0]}')">
+      <span class="pm-card-ico">${c[1]}</span>
+      <span class="pm-card-go">→</span>
+      <span class="pm-card-txt"><b>${c[2]}</b><small>${c[3]}</small></span>
+      <span class="pm-card-ghost" aria-hidden="true">${c[1]}</span>
     </button>`).join('');
-  const quickTabs=[
-    ['home','🏠','HOME'],['statisticsTab','📊','STATISTICS'],['achievement','🏆','ACHIEVEMENTS'],
-    ['darkStore','🛒','MARKET'],['contactAdmin','📰','REPORTS'],['organization','🛡️','FACTION'],
-    ['familyMenu','👥','FAMILY'],['dailyReward','🎉','EVENTS'],['jobs','💼','JOBS']
-  ];
-  const quickTabsHtml=quickTabs.map(t => `<button type="button" class="dc-home-tab ${t[0]==='home'?'active':''}" onclick="${t[0]==='home'?'goHome()':`switchView('${t[0]}')`}"><span class="tab-emoji">${t[1]}</span><span>${t[2]}</span></button>`).join('');
   const online=Number(server.online||0), max=Number(server.max||64);
+  const jobName=(p.job && String(p.job).toLowerCase()!=='unemployed') ? String(p.job).toUpperCase() : 'CITIZEN';
   const markup=`
-    <div class="dc-home">
-      <header class="dc-home-top">
-        <div class="dc-home-brand"><div class="dc-home-logo">DC</div><div><b>DARK CITY RP</b><small>PREMIUM M MENU</small></div></div>
-        <div class="dc-home-player"><div class="dc-home-avatar">${esc(String((p.name||'D').slice(0,1)).toUpperCase())}</div><div><small>WELCOME BACK</small><b>${esc(p.name||'Player')}</b></div><span>ID ${visiblePlayerId(p.player_id||0)}</span></div>
-        <div class="dc-home-meta"><span>📍 LOS SANTOS</span><span>🟢 ${online}/${max} ONLINE</span><button type="button" onclick="closeUi()" aria-label="Close menu">✕</button></div>
+    <div class="pm-home">
+      <header class="pm-top">
+        <div class="pm-brand"><div class="pm-logo">DC</div><div><b>DARK CITY</b><small>ROLEPLAY • M MENU</small></div></div>
+        <div class="pm-player"><div class="pm-avatar">${esc(String((p.name||'D').slice(0,1)).toUpperCase())}</div><div><b>${esc(p.name||'Player')}</b><small>ID ${visiblePlayerId(p.player_id||0)} • ${esc(jobName)}</small></div></div>
+        <div class="pm-top-right">
+          <span class="pm-pill live"><i></i><b>${online}/${max}</b><em>ONLINE</em></span>
+          <button type="button" class="pm-close" onclick="closeUi()" aria-label="Close menu">✕</button>
+        </div>
       </header>
-      <nav class="dc-home-tabs" aria-label="Quick menu">${quickTabsHtml}</nav>
-      <div class="dc-home-hero-layout">
-        <section class="dc-home-hero"><div class="dc-home-hero-art"></div><div class="dc-home-hero-copy"><small>DARK CITY ROLEPLAY</small><h1>DARK CITY <em>SEASON</em></h1><p>REAL PEOPLE • REAL STORIES • ONE CITY</p></div><div class="dc-home-hero-stat"><span>💵 CASH</span><b>${money(p.cash||0)}</b><span>🏦 BANK</span><b>${money(p.bank||0)}</b></div></section>
-        <button type="button" class="dc-home-event-card" onclick="switchView('dailyReward')"><span class="dc-event-art"></span><span class="dc-event-copy"><small>LIVE IN LOS SANTOS</small><h2>🎉 EVENTS</h2><p>Join events, meet players and unlock exclusive rewards.</p><strong>VIEW EVENTS →</strong></span></button>
+      <div class="pm-hero-row">
+        <section class="pm-hero">
+          <div class="pm-hero-copy"><small>WELCOME TO</small><h1>DARK CITY <em>RP</em></h1><p>REAL PEOPLE • REAL STORIES • ONE CITY</p></div>
+          <div class="pm-wallet">
+            <div><small>CASH</small><b>${money(p.cash||0)}</b></div>
+            <div><small>BANK</small><b>${money(p.bank||0)}</b></div>
+          </div>
+        </section>
+        <button type="button" class="pm-feature" onclick="switchView('dailyReward')">
+          <span class="pm-feature-glyph" aria-hidden="true">🎁</span>
+          <small>ONLINE REWARDS</small><h2>Daily Reward</h2>
+          <p>Stay online, claim your rewards and keep your streak alive.</p>
+          <strong>CLAIM NOW →</strong>
+        </button>
       </div>
-      <section class="dc-home-grid">${cardHtml}</section>
-      ${globalNav(true)}
-      <footer class="dc-home-footer"><span>● DARK CITY RP</span><span>SELECT A MODULE TO CONTINUE</span><span>ESC • CLOSE</span></footer>
+      <section class="pm-grid">${cardHtml}</section>
+      <footer class="pm-home-foot">
+        ${globalNav(true)}
+        <span><b>●</b> SELECT A MODULE TO CONTINUE</span>
+      </footer>
     </div>`;
   // IMPORTANT: render() normally returns through wrap(). The home hub is a standalone
   // screen, so it must mount directly; this prevents the previous blank screen.
@@ -1277,14 +1311,14 @@ function renderBusiness(d){
   const b = d.my_business || d.business || null;
   const logs = d.business_logs || [];
   if (!b) {
-    return wrap('Business', `<div class="r-card hero-card">${imgBox('businessPurchase/layer.png','hero-img')}<h3>No Business Owned</h3><p class="muted">Buy a business from Real Estate. Only one business per owner is allowed.</p><button class="btn gold" onclick="switchView('realEstate')">Open Real Estate</button></div>`);
+    return wrap('Business', `<div class="r-card hero-card">${imgBox('m-menu/business/overview.jpg','hero-img')}<h3>No Business Owned</h3><p class="muted">Buy a business from Real Estate. Only one business per owner is allowed.</p><button class="btn gold" onclick="switchView('realEstate')">Open Real Estate</button></div>`);
   }
   const stockPct = Math.max(0, Math.min(100, Math.floor((Number(b.stock||0) / Math.max(1, Number(b.max_stock||100))) * 100)));
   const rows = logs.map(l => `<div class="row"><div><b>${esc(l.action)}</b><span>${esc(l.details || '')}</span></div><b>${money(l.amount || 0)}</b></div>`).join('');
   const orders = d.business_supply_orders || [];
   const orderRows = orders.map(o => `<div class="row"><div><b>#${esc(o.id)} ${esc(o.status || 'pending').toUpperCase()}</b><span>${esc(o.stock_amount)} ${esc(o.stock_label || 'stock')} • ${esc(o.order_size || '')} • Driver: ${esc(o.assigned_name || 'Waiting')}</span></div><b>${money(o.order_cost || 0)}</b></div>`).join('');
   return wrap('Business', `<div class="grid2">
-    <div class="r-card">${imgBox('businessPurchase/layer.png','wide')}<h3>${esc(b.label)}</h3><p class="muted">Business ID ${esc(b.id)} • ${esc(b.type)} • Owner ID ${esc(b.owner_player_id)}</p><div class="big gold">${money(b.balance)}</div><p>Balance</p></div>
+    <div class="r-card">${imgBox('m-menu/ai/business-finance.webp','wide')}<h3>${esc(b.label)}</h3><p class="muted">Business ID ${esc(b.id)} • ${esc(b.type)} • Owner ID ${esc(b.owner_player_id)}</p><div class="big gold">${money(b.balance)}</div><p>Balance</p></div>
     <div class="r-card"><h3>Stock</h3><div class="progress"><span style="width:${stockPct}%"></span></div><p>${esc(b.stock)} / ${esc(b.max_stock)}</p><p>Price Level: <b>${String(b.price_level||'medium').toUpperCase()}</b> • Item Price ${money(b.product_price)}</p><p>Gang Robbery: <b>${Number(b.gang_robbery_allowed||0)===1?'YES':'NO'}</b></p></div>
   </div>
   <div class="r-card"><h3>Price Level</h3><button class="btn" onclick="action('business_price_level',{businessId:${Number(b.id)},level:'low'})">LOW</button><button class="btn gold" onclick="action('business_price_level',{businessId:${Number(b.id)},level:'medium'})">MEDIUM</button><button class="btn red" onclick="action('business_price_level',{businessId:${Number(b.id)},level:'high'})">HIGH</button></div>
@@ -1476,7 +1510,7 @@ function renderBattlePass(){
     } else if (unlocked) stateLabel = 'AVAILABLE';
     return `<div class="bp-reward-card ${track} ${claimed?'claimed':''} ${available?'ready':''} ${premiumLocked?'premium-locked':''}">
       <div class="bp-reward-state">${stateLabel}</div>
-      <div class="bp-reward-img" style="background-image:url('${asset(esc(reward.image||'newDonateShop/header_money.svg'))}')"></div>
+      <div class="bp-reward-img" style="background-image:url('${asset(esc(reward.image||'m-menu/ai/job-rewards.webp'))}')"></div>
       <b>${esc(reward.label || 'Reward')}</b>
       <small>${track === 'premium' ? 'PREMIUM TRACK' : 'FREE TRACK'}</small>
       ${btn}
@@ -1555,10 +1589,10 @@ function renderBattlePass(){
 function renderDailyReward(){
   const active = state.data.daily_reward || null;
   const tiers = [
-    { id:'3h', label:'3 Hours Play', reward:50000, seconds:10800, img:'newDonateShop/header_coin.png' },
-    { id:'5h', label:'5 Hours Play', reward:70000, seconds:18000, img:'newDonateShop/header_money.svg' },
-    { id:'7h', label:'7 Hours Play', reward:90000, seconds:25200, img:'newDonateShop/header_money.svg' },
-    { id:'9h', label:'9 Hours Play', reward:120000, seconds:32400, img:'newDonateShop/items/byvip.png' }
+    { id:'3h', label:'3 Hours Play', reward:50000, seconds:10800, img:'m-menu/ai/daily-rewards.webp' },
+    { id:'5h', label:'5 Hours Play', reward:70000, seconds:18000, img:'m-menu/ai/job-rewards.webp' },
+    { id:'7h', label:'7 Hours Play', reward:90000, seconds:25200, img:'m-menu/ai/achievement-wealth.webp' },
+    { id:'9h', label:'9 Hours Play', reward:120000, seconds:32400, img:'m-menu/ai/achievements.webp' }
   ];
   const activeBox = active
     ? `<div class="r-card daily-active"><h3>Live Daily Reward Timer</h3><div class="big gold">${fmtTimeLeft(active.remaining_seconds)}</div><p class="muted">Reward: ${money(active.reward_amount)} will auto deposit to bank after timer complete.</p></div>`

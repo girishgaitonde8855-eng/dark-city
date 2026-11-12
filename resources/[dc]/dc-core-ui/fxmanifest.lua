@@ -4,7 +4,7 @@ lua54 'yes'
 
 author 'Dark City RP'
 description 'Dark City RP Core UI - Dark City Phase 3 unified menu + Phase 1 HUD'
-version '6.0.0-darkcity-phase3'
+version '6.1.0-darkcity-premium-v2'
 
 ui_page 'html/index.html'
 
@@ -27,7 +27,7 @@ files {
     'html/app.js',
     'html/phase1_hud.css',
     'html/phase3_ui.css',
-    'html/premium_mmenu_gta.css',
+    'html/dc_premium_v2.css',
     'html/phase1_hud.js',
     'html/img/**/*.*'
 }
