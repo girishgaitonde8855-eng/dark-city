@@ -835,7 +835,9 @@ function renderMMenuHome(){
       <span class="pm-card-ghost" aria-hidden="true">${c[1]}</span>
     </button>`).join('');
   const online=Number(server.online||0), max=Number(server.max||64);
-  const jobName=(p.job && String(p.job).toLowerCase()!=='unemployed') ? String(p.job).toUpperCase() : 'CITIZEN';
+  // qb-core sends job as an object ({name,label,grade}); older code paths send a string
+  const jobRaw=(p.job && typeof p.job==='object') ? (p.job.label || p.job.name || '') : (p.job || '');
+  const jobName=(jobRaw && String(jobRaw).toLowerCase()!=='unemployed') ? String(jobRaw).toUpperCase() : 'CITIZEN';
   const markup=`
     <div class="pm-home">
       <header class="pm-top">
