@@ -36,3 +36,685 @@
 /* Keep background treatment behind the live menu content. The legacy .main pseudo overlays otherwise paint above page text. */
 #app .shell:not(.flow-mode) .main:before,#app .shell:not(.flow-mode) .main:after{z-index:0!important}
 #app .shell:not(.flow-mode) #content>.title,#app .shell:not(.flow-mode) #content>.pagebody,#app .shell:not(.flow-mode) #content>.menu-footer{position:relative;z-index:1}
+
+/* ======================================================================
+   Dark City premium v2 design system (merged here so it always ships: this
+   file is already in fxmanifest, so no manifest refresh is needed).
+   ====================================================================== */
+/* ==========================================================================
+   DARK CITY RP — PREMIUM M MENU  (v2 design system)
+   Loaded LAST. One unified visual layer: obsidian glass + amber accent.
+   - No photo backgrounds behind data cards (images were clashing with live text)
+   - One surface style for every panel, one button style, one tab style
+   Existing JS / NUI actions are untouched.
+   ========================================================================== */
+
+:root{
+  --pm-bg-0:#06070a;
+  --pm-bg-1:#0b0d12;
+  --pm-surface:rgba(255,255,255,.035);
+  --pm-surface-2:rgba(255,255,255,.06);
+  --pm-surface-hi:rgba(255,255,255,.09);
+  --pm-line:rgba(255,255,255,.075);
+  --pm-line-2:rgba(255,255,255,.14);
+  --pm-accent:#ff9f1c;
+  --pm-accent-2:#ffd166;
+  --pm-accent-deep:#c46a00;
+  --pm-accent-soft:rgba(255,159,28,.13);
+  --pm-accent-line:rgba(255,159,28,.42);
+  --pm-text:#f5f2ec;
+  --pm-text-2:#c4c0b8;
+  --pm-muted:#8d8a93;
+  --pm-good:#3ddc97;
+  --pm-bad:#ff5470;
+  --pm-radius:16px;
+  --pm-radius-sm:11px;
+  --pm-font:"Segoe UI Variable Display","Segoe UI","Inter","Helvetica Neue",Arial,sans-serif;
+  --pm-ease:cubic-bezier(.2,.7,.2,1);
+}
+
+/* ---------- Canvas ---------- */
+html,body{font-family:var(--pm-font)!important;color:var(--pm-text)}
+#app{
+  background:
+    radial-gradient(1200px 700px at 12% -10%,rgba(255,159,28,.16),transparent 60%),
+    radial-gradient(900px 600px at 105% 110%,rgba(255,84,112,.10),transparent 60%),
+    linear-gradient(180deg,#050608,#0a0b10)!important;
+}
+#app:before,#app:after{display:none!important}
+
+/* ---------- Shell ---------- */
+#app .shell:not(.pm-off):not(.dc-spawn-mode){
+  left:2vw!important;top:2.4vh!important;width:96vw!important;height:95.2vh!important;
+  grid-template-columns:268px 1fr!important;
+  border:1px solid var(--pm-line-2)!important;
+  border-radius:26px!important;
+  background:linear-gradient(180deg,rgba(14,15,20,.94),rgba(8,9,13,.96))!important;
+  box-shadow:0 40px 120px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.02) inset,0 1px 0 rgba(255,255,255,.07) inset!important;
+  backdrop-filter:blur(26px) saturate(1.1)!important;
+}
+#app .shell.flow-mode{left:10vw!important;width:80vw!important;grid-template-columns:0 1fr!important}
+#app .shell.dc-home-mode{
+  left:2vw!important;top:2.4vh!important;width:96vw!important;height:95.2vh!important;
+  grid-template-columns:1fr!important;
+}
+#app .shell.dc-home-mode .main{background:transparent!important}
+
+/* ---------- Sidebar ---------- */
+#app .shell:not(.pm-off) .sidebar{
+  padding:22px 16px 16px!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,0)) !important;
+  border-right:1px solid var(--pm-line)!important;
+  display:flex;flex-direction:column;min-height:0;
+}
+#app .shell:not(.pm-off) .brand{
+  margin:0 4px 16px!important;padding:0 0 16px!important;gap:13px!important;
+  border:0!important;border-bottom:1px solid var(--pm-line)!important;background:none!important;border-radius:0!important;
+}
+#app .shell:not(.pm-off) .logo{
+  width:46px!important;height:46px!important;border-radius:14px!important;
+  background:linear-gradient(145deg,var(--pm-accent-2),var(--pm-accent) 55%,var(--pm-accent-deep))!important;
+  color:#1a1000!important;font-weight:900;letter-spacing:.5px;font-size:16px;
+  box-shadow:0 10px 28px rgba(255,159,28,.28),inset 0 1px 0 rgba(255,255,255,.45)!important;
+}
+#app .shell:not(.pm-off) .brand h2{font-size:15px!important;letter-spacing:2.2px!important;font-weight:800;color:var(--pm-text)!important}
+#app .shell:not(.pm-off) .brand p{font-size:9.5px!important;letter-spacing:2.6px;color:var(--pm-accent)!important;font-weight:700;text-transform:uppercase}
+
+#app .shell:not(.pm-off) #nav{gap:3px!important;height:auto!important;flex:1;min-height:0;padding:0 2px 0 0!important}
+#app .shell:not(.pm-off) .navbtn{
+  position:relative;display:flex!important;align-items:center;gap:12px;
+  min-height:46px!important;padding:6px 10px!important;
+  border:1px solid transparent!important;border-radius:13px!important;
+  background:transparent!important;color:var(--pm-text-2)!important;
+  text-transform:none!important;letter-spacing:0!important;
+  transition:background .18s var(--pm-ease),border-color .18s var(--pm-ease),transform .18s var(--pm-ease)!important;
+}
+#app .shell:not(.pm-off) .navbtn:before,#app .shell:not(.pm-off) .navbtn:after{display:none!important}
+#app .shell:not(.pm-off) .navbtn .navicon{
+  flex:0 0 30px;width:30px;height:30px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;letter-spacing:.5px;
+  background:var(--pm-surface-2)!important;color:var(--pm-muted)!important;
+  border:1px solid var(--pm-line)!important;
+}
+#app .shell:not(.pm-off) .navbtn .navcopy{display:flex;flex-direction:column;gap:1px;min-width:0;text-align:left}
+#app .shell:not(.pm-off) .navbtn .navcopy b{font-size:13px;font-weight:650;color:var(--pm-text)!important;letter-spacing:.2px}
+#app .shell:not(.pm-off) .navbtn .navcopy small{font-size:10.5px;color:var(--pm-muted)!important;font-weight:500}
+#app .shell:not(.pm-off) .navbtn:hover{background:var(--pm-surface-2)!important;transform:translateX(3px)!important;box-shadow:none!important}
+#app .shell:not(.pm-off) .navbtn.active{
+  background:linear-gradient(90deg,var(--pm-accent-soft),rgba(255,159,28,.02))!important;
+  border-color:var(--pm-accent-line)!important;box-shadow:inset 3px 0 0 var(--pm-accent)!important;transform:none!important;
+}
+#app .shell:not(.pm-off) .navbtn.active .navicon{
+  background:linear-gradient(145deg,var(--pm-accent-2),var(--pm-accent))!important;color:#1a1000!important;border-color:transparent!important;
+}
+#app .shell:not(.pm-off) .navbtn.active .navcopy b{color:#fff!important}
+
+/* ---------- Main + header ---------- */
+#app .shell:not(.pm-off) .main{background:transparent!important}
+#app .shell:not(.pm-off) .main:before,#app .shell:not(.pm-off) .main:after{display:none!important}
+#app .shell:not(.pm-off) #content{padding:20px 24px 18px!important;scroll-behavior:smooth}
+#app .shell:not(.pm-off) .title,#app .shell:not(.pm-off) .title.premium-title{
+  min-height:0!important;padding:18px 22px!important;margin:0 0 18px!important;
+  border-radius:20px!important;border:1px solid var(--pm-line)!important;
+  background:
+    radial-gradient(500px 160px at 0% 0%,rgba(255,159,28,.16),transparent 70%),
+    linear-gradient(180deg,var(--pm-surface-2),var(--pm-surface))!important;
+  box-shadow:0 12px 36px rgba(0,0,0,.28)!important;
+}
+#app .shell:not(.pm-off) .titleleft{gap:16px!important}
+#app .shell:not(.pm-off) .page-icon{
+  width:52px!important;height:52px!important;border-radius:16px!important;font-size:24px!important;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(145deg,rgba(255,209,102,.22),rgba(255,159,28,.10))!important;
+  border:1px solid var(--pm-accent-line)!important;color:var(--pm-accent-2)!important;
+  box-shadow:0 8px 24px rgba(255,159,28,.14)!important;
+}
+#app .shell:not(.pm-off) .eyebrow{font-size:10px!important;letter-spacing:3px!important;color:var(--pm-accent)!important;font-weight:800!important}
+#app .shell:not(.pm-off) .title h1{font-size:28px!important;font-weight:800!important;letter-spacing:.4px!important;text-transform:none!important;text-shadow:none!important;margin:2px 0 0!important}
+#app .shell:not(.pm-off) .subtitle{margin:2px 0 0!important;color:var(--pm-muted)!important;font-size:12.5px!important}
+#app .shell:not(.pm-off) .title-right-pack{display:flex;gap:8px;flex-wrap:wrap}
+#app .shell:not(.pm-off) .hero-chip,#app .shell:not(.pm-off) .pill{
+  padding:8px 14px!important;border-radius:999px!important;font-size:11.5px!important;font-weight:700!important;letter-spacing:.6px!important;
+  border:1px solid var(--pm-line-2)!important;background:var(--pm-surface)!important;color:var(--pm-text-2)!important;
+}
+
+/* ---------- Surfaces: ONE style for every panel/card ----------
+   (previously each got a different photo, injected by 4 JS functions)       */
+#app .shell:not(.pm-off) .r-card,#app .shell:not(.pm-off) .card,#app .shell:not(.pm-off) .tile,#app .shell:not(.pm-off) .premium-tile,#app .shell:not(.pm-off) .setting-card,#app .shell:not(.pm-off) .setting-card-v16,
+#app .shell:not(.pm-off) .fam3-panel,#app .shell:not(.pm-off) .fam3-property-card,#app .shell:not(.pm-off) .fam3-hero,#app .shell:not(.pm-off) .org-card,#app .shell:not(.pm-off) .quick-org-card,
+#app .shell:not(.pm-off) .achievement-card,#app .shell:not(.pm-off) .achievement-hero,
+#app .shell:not(.pm-off) .bp-reward-card,#app .shell:not(.pm-off) .bp-mission-card,#app .shell:not(.pm-off) .bp-history-card,#app .shell:not(.pm-off) .bp-pass-status,#app .shell:not(.pm-off) .bp-hero,
+#app .shell:not(.pm-off) .ref-v1-reward-card,#app .shell:not(.pm-off) .ref-v1-list-panel,#app .shell:not(.pm-off) .ref-v1-stats,#app .shell:not(.pm-off) .ref-v1-hero,#app .shell:not(.pm-off) .ref-v1-rules,
+#app .shell:not(.pm-off) .prime2-panel,#app .shell:not(.pm-off) .prime2-status,
+#app .shell:not(.pm-off) .job-premium-card,#app .shell:not(.pm-off) .job-progress-card,
+#app .shell:not(.pm-off) .store-v2-panel,#app .shell:not(.pm-off) .store-v2-card,#app .shell:not(.pm-off) .store-v2-statusbar,#app .shell:not(.pm-off) .store-v2-hero,#app .shell:not(.pm-off) .settings-hero-v16,
+#app .shell:not(.pm-off) .mini-stat,#app .shell:not(.pm-off) .licence-document,#app .shell:not(.pm-off) .profile-panel,#app .shell:not(.pm-off) .profile-card,#app .shell:not(.pm-off) .xp-level-panel,
+#app .shell:not(.pm-off) .old-stat,#app .shell:not(.pm-off) .flow-card,#app .shell:not(.pm-off) .hero-card,#app .shell:not(.pm-off) .store-head,#app .shell:not(.pm-off) .page-intro{
+  background:linear-gradient(180deg,var(--pm-surface-2),var(--pm-surface))!important;
+  background-image:linear-gradient(180deg,var(--pm-surface-2),var(--pm-surface))!important;
+  border:1px solid var(--pm-line)!important;
+  border-radius:var(--pm-radius)!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.25)!important;
+  color:var(--pm-text);
+  transition:border-color .2s var(--pm-ease),transform .2s var(--pm-ease),box-shadow .2s var(--pm-ease);
+}
+#app .shell:not(.pm-off) .r-card:before,#app .shell:not(.pm-off) .r-card:after,#app .shell:not(.pm-off) .premium-tile:before,#app .shell:not(.pm-off) .premium-tile:after,
+#app .shell:not(.pm-off) .mini-stat:before,#app .shell:not(.pm-off) .mini-stat:after,#app .shell:not(.pm-off) .licence-document:before,#app .shell:not(.pm-off) .licence-document:after,
+#app .shell:not(.pm-off) .profile-panel:before,#app .shell:not(.pm-off) .profile-panel:after,#app .shell:not(.pm-off) .xp-level-panel:before,#app .shell:not(.pm-off) .xp-level-panel:after,
+#app .shell:not(.pm-off) .fam3-panel:before,#app .shell:not(.pm-off) .fam3-panel:after,#app .shell:not(.pm-off) .org-card:before,#app .shell:not(.pm-off) .org-card:after,
+#app .shell:not(.pm-off) .setting-card:before,#app .shell:not(.pm-off) .setting-card:after,#app .shell:not(.pm-off) .achievement-card:before,#app .shell:not(.pm-off) .achievement-card:after{
+  background-image:none!important;
+}
+#app .shell:not(.pm-off) .r-card:hover,#app .shell:not(.pm-off) .premium-tile:hover,#app .shell:not(.pm-off) .setting-card:hover,#app .shell:not(.pm-off) .org-card:hover,
+#app .shell:not(.pm-off) .job-premium-card:hover,#app .shell:not(.pm-off) .store-v2-card:hover,#app .shell:not(.pm-off) .achievement-card:hover,
+#app .shell:not(.pm-off) .bp-reward-card:hover,#app .shell:not(.pm-off) .mini-stat:hover{border-color:var(--pm-accent-line)!important;transform:translateY(-2px)}
+
+/* Hero-type panels get a soft warm glow instead of a picture */
+#app .shell:not(.pm-off) .fam3-hero,#app .shell:not(.pm-off) .achievement-hero,#app .shell:not(.pm-off) .bp-hero,#app .shell:not(.pm-off) .bp-pass-status,#app .shell:not(.pm-off) .ref-v1-hero,
+#app .shell:not(.pm-off) .store-v2-hero,#app .shell:not(.pm-off) .settings-hero-v16,#app .shell:not(.pm-off) .prime2-status,#app .shell:not(.pm-off) .xp-level-panel,#app .shell:not(.pm-off) .profile-panel{
+  background:
+    radial-gradient(520px 200px at 0% 0%,rgba(255,159,28,.18),transparent 70%),
+    linear-gradient(180deg,var(--pm-surface-hi),var(--pm-surface))!important;
+  border-color:var(--pm-accent-line)!important;
+}
+
+/* Headings / text inside panels */
+#app .shell:not(.pm-off) .r-card h3,#app .shell:not(.pm-off) .fam3-panel h3,#app .shell:not(.pm-off) .setting-card h3,#app .shell:not(.pm-off) .org-card h3{
+  font-size:15px!important;font-weight:750!important;letter-spacing:.3px!important;text-transform:none!important;color:var(--pm-text)!important;margin:0 0 8px!important;
+}
+#app .shell:not(.pm-off) .r-card p,#app .shell:not(.pm-off) .muted,#app .shell:not(.pm-off) .fam3-panel p,#app .shell:not(.pm-off) .setting-card p{color:var(--pm-muted)!important;font-size:13px!important;line-height:1.5}
+#app .shell:not(.pm-off) .big{font-weight:800!important;letter-spacing:.3px}
+#app .shell:not(.pm-off) .section-head h2,#app .shell:not(.pm-off) .section-head h3{font-size:12px!important;letter-spacing:2.6px!important;font-weight:800!important;text-transform:uppercase;color:var(--pm-accent)!important}
+#app .shell:not(.pm-off) .section-head p{color:var(--pm-muted)!important}
+#app .shell:not(.pm-off) .gold{color:var(--pm-accent-2)!important}
+#app .shell:not(.pm-off) .cyan{color:var(--pm-accent)!important}
+#app .shell:not(.pm-off) .green{color:var(--pm-good)}
+
+/* ---------- Buttons ---------- */
+#app .shell:not(.pm-off) .btn,#app .shell:not(.pm-off) .bigbtn,#app .shell:not(.pm-off) .setting-apply,#app .shell:not(.pm-off) .store-v2-confirm-btn{
+  border:1px solid rgba(255,255,255,.18)!important;border-radius:12px!important;
+  background:linear-gradient(180deg,var(--pm-accent-2),var(--pm-accent) 60%,var(--pm-accent-deep))!important;
+  color:#1a1000!important;font-weight:800!important;font-size:12px!important;letter-spacing:.9px!important;text-transform:uppercase;
+  padding:11px 18px!important;box-shadow:0 8px 22px rgba(255,159,28,.20),inset 0 1px 0 rgba(255,255,255,.4)!important;
+  transition:transform .16s var(--pm-ease),filter .16s var(--pm-ease),box-shadow .16s var(--pm-ease)!important;
+}
+#app .shell:not(.pm-off) .btn:hover,#app .shell:not(.pm-off) .bigbtn:hover,#app .shell:not(.pm-off) .setting-apply:hover,#app .shell:not(.pm-off) .store-v2-confirm-btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+#app .shell:not(.pm-off) .btn:active{transform:translateY(0) scale(.98)}
+#app .shell:not(.pm-off) .btn.ghost,#app .shell:not(.pm-off) .btn.secondary{
+  background:var(--pm-surface-2)!important;color:var(--pm-text)!important;border-color:var(--pm-line-2)!important;box-shadow:none!important;
+}
+#app .shell:not(.pm-off) .btn.green{background:linear-gradient(180deg,#7bf0bd,var(--pm-good))!important;color:#03180e!important;box-shadow:0 8px 22px rgba(61,220,151,.18)!important}
+#app .shell:not(.pm-off) .btn.red,#app .shell:not(.pm-off) .btn.danger,#app .shell:not(.pm-off) .danger{background:linear-gradient(180deg,#ff8aa0,var(--pm-bad))!important;color:#240008!important;box-shadow:0 8px 22px rgba(255,84,112,.2)!important}
+#app .shell:not(.pm-off) .btn.gold{background:linear-gradient(180deg,#ffe29a,var(--pm-accent-2))!important}
+#app .shell:not(.pm-off) .btn.disabled,#app .shell:not(.pm-off) .btn:disabled{opacity:.4!important;filter:grayscale(.6);pointer-events:none}
+
+/* ---------- Inputs ---------- */
+#app .shell:not(.pm-off) input,#app .shell:not(.pm-off) textarea,#app .shell:not(.pm-off) select{
+  background:rgba(0,0,0,.32)!important;border:1px solid var(--pm-line-2)!important;border-radius:var(--pm-radius-sm)!important;
+  color:var(--pm-text)!important;font-family:var(--pm-font);font-size:13.5px;padding:12px 14px!important;
+  transition:border-color .15s,box-shadow .15s;
+}
+#app .shell:not(.pm-off) input:focus,#app .shell:not(.pm-off) textarea:focus,#app .shell:not(.pm-off) select:focus{border-color:var(--pm-accent)!important;box-shadow:0 0 0 3px rgba(255,159,28,.16)!important;outline:none}
+#app .shell:not(.pm-off) input::placeholder,#app .shell:not(.pm-off) textarea::placeholder{color:var(--pm-muted)}
+#app .shell:not(.pm-off) input[type=range]{accent-color:var(--pm-accent);padding:0!important;height:auto}
+#app .shell:not(.pm-off) .grp-field span,#app label span{color:var(--pm-muted);font-size:11px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
+
+/* ---------- Lists / rows / empty ---------- */
+#app .shell:not(.pm-off) .row{
+  border:1px solid var(--pm-line)!important;border-radius:13px!important;background:var(--pm-surface)!important;padding:12px 14px!important;
+}
+#app .shell:not(.pm-off) .row:hover{background:var(--pm-surface-2)!important}
+#app .shell:not(.pm-off) .row span{color:var(--pm-muted)!important}
+#app .shell:not(.pm-off) .empty,#app .shell:not(.pm-off) .fam3-empty,#app .shell:not(.pm-off) .premium-empty{
+  border:1px dashed var(--pm-line-2)!important;border-radius:var(--pm-radius)!important;
+  background:var(--pm-surface)!important;color:var(--pm-muted)!important;
+}
+
+/* ---------- Inner tabs (family / battle pass / prime / settings / store) ---------- */
+#app .shell:not(.pm-off) .fam3-nav button,#app .shell:not(.pm-off) .bp-tabs button,#app .shell:not(.pm-off) .prime2-tabs button,#app .shell:not(.pm-off) .setting-segments button,
+#app .shell:not(.pm-off) .store-v2-tabs button,#app .shell:not(.pm-off) .achievement-tabs button{
+  background:var(--pm-surface)!important;background-image:none!important;
+  border:1px solid var(--pm-line)!important;border-radius:12px!important;
+  color:var(--pm-text-2)!important;font-weight:650!important;font-size:12.5px!important;letter-spacing:.3px!important;text-transform:none!important;
+  transition:background .16s,border-color .16s,color .16s!important;
+}
+#app .shell:not(.pm-off) .fam3-nav button:before,#app .shell:not(.pm-off) .bp-tabs button:before,#app .shell:not(.pm-off) .prime2-tabs button:before,
+#app .shell:not(.pm-off) .setting-segments button:before,#app .shell:not(.pm-off) .store-v2-tabs button:before,#app .shell:not(.pm-off) .achievement-tabs button:before{background-image:none!important}
+#app .shell:not(.pm-off) .fam3-nav button:hover,#app .shell:not(.pm-off) .bp-tabs button:hover,#app .shell:not(.pm-off) .prime2-tabs button:hover,
+#app .shell:not(.pm-off) .setting-segments button:hover,#app .shell:not(.pm-off) .store-v2-tabs button:hover{background:var(--pm-surface-2)!important;color:var(--pm-text)!important}
+#app .shell:not(.pm-off) .fam3-nav button.active,#app .shell:not(.pm-off) .bp-tabs button.active,#app .shell:not(.pm-off) .prime2-tabs button.active,
+#app .shell:not(.pm-off) .setting-segments button.active,#app .shell:not(.pm-off) .store-v2-tabs button.active,#app .shell:not(.pm-off) .achievement-tabs button.active,
+#app .shell:not(.pm-off) .fam3-nav button.selected,#app .shell:not(.pm-off) .bp-tabs button.selected,#app .shell:not(.pm-off) .prime2-tabs button.selected,
+#app .shell:not(.pm-off) .setting-segments button.selected,#app .shell:not(.pm-off) .store-v2-tabs button.selected{
+  background:linear-gradient(90deg,var(--pm-accent-soft),rgba(255,159,28,.03))!important;
+  border-color:var(--pm-accent-line)!important;color:#fff!important;box-shadow:inset 0 -2px 0 var(--pm-accent)!important;
+}
+
+/* Progress bars */
+#app .shell:not(.pm-off) .job-xp-bar,#app .shell:not(.pm-off) .ref-v1-progress,#app .shell:not(.pm-off) .progress{background:rgba(255,255,255,.07)!important;border-radius:999px!important;overflow:hidden}
+#app .shell:not(.pm-off) .job-xp-bar>*,#app .shell:not(.pm-off) .progress>*,#app .shell:not(.pm-off) .ref-v1-progress>*{background:linear-gradient(90deg,var(--pm-accent),var(--pm-accent-2))!important;border-radius:999px!important}
+
+/* Product / job images stay as media — just tidy the frame */
+#app .shell:not(.pm-off) .media{border-radius:13px!important;border:1px solid var(--pm-line)!important}
+
+/* ---------- Back / Home / Close (now lives in the page header) ---------- */
+#app .shell:not(.pm-off) .dc-global-nav{
+  position:static!important;display:flex!important;align-items:center;gap:6px;width:auto;margin:0 0 0 6px!important;padding:4px!important;
+  border:1px solid var(--pm-line-2)!important;border-radius:14px!important;background:rgba(0,0,0,.28)!important;box-shadow:none!important;
+}
+#app .shell:not(.pm-off) .dc-global-nav button{
+  border:1px solid transparent!important;border-radius:10px!important;background:transparent!important;
+  color:var(--pm-text-2)!important;font-size:10.5px!important;font-weight:750!important;letter-spacing:1px!important;padding:8px 12px!important;cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s;
+}
+#app .shell:not(.pm-off) .dc-global-nav button:hover{background:var(--pm-surface-2)!important;color:#fff!important}
+#app .shell:not(.pm-off) .dc-global-nav .dc-nav-home{background:linear-gradient(180deg,var(--pm-accent-2),var(--pm-accent))!important;color:#1a1000!important}
+#app .shell:not(.pm-off) .dc-global-nav .dc-nav-close{color:#ff9aab!important}
+#app .shell:not(.pm-off) .dc-global-nav .dc-nav-close:hover{background:rgba(255,84,112,.16)!important}
+#app .shell:not(.pm-off) .dc-global-nav small{display:none}
+#app .shell:not(.pm-off) .title-right-pack{align-items:center}
+#app .shell:not(.pm-off) .menu-footer{
+  border:0!important;border-top:1px solid var(--pm-line)!important;border-radius:0!important;background:none!important;
+  color:var(--pm-muted)!important;font-size:10px!important;letter-spacing:2px!important;text-transform:uppercase;padding:14px 4px 4px!important;margin-top:12px!important;
+}
+
+/* ---------- Scrollbars ---------- */
+#app ::-webkit-scrollbar{width:9px;height:9px}
+#app ::-webkit-scrollbar-track{background:transparent}
+#app ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:999px;border:2px solid transparent;background-clip:padding-box}
+#app ::-webkit-scrollbar-thumb:hover{background:var(--pm-accent-line);background-clip:padding-box;border:2px solid transparent}
+
+/* ==========================================================================
+   HOME  (new layout)
+   ========================================================================== */
+#app .pm-home{
+  position:relative;height:100%;box-sizing:border-box;padding:22px 26px 18px;
+  display:flex;flex-direction:column;gap:16px;overflow-y:auto;overflow-x:hidden;color:var(--pm-text);
+}
+.pm-top{display:flex;align-items:center;gap:18px}
+.pm-brand{display:flex;align-items:center;gap:13px;min-width:230px}
+.pm-logo{
+  width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:16px;color:#1a1000;
+  background:linear-gradient(145deg,var(--pm-accent-2),var(--pm-accent) 55%,var(--pm-accent-deep));
+  box-shadow:0 10px 28px rgba(255,159,28,.3),inset 0 1px 0 rgba(255,255,255,.45);
+}
+.pm-brand b{display:block;font-size:16px;letter-spacing:3px;font-weight:800}
+.pm-brand small{display:block;margin-top:2px;font-size:9.5px;letter-spacing:3px;color:var(--pm-accent);font-weight:700}
+.pm-player{
+  display:flex;align-items:center;gap:12px;padding:7px 18px 7px 8px;border-radius:999px;
+  border:1px solid var(--pm-line-2);background:var(--pm-surface);
+}
+.pm-avatar{
+  width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;
+  background:linear-gradient(145deg,#3a3d4a,#20222b);border:1px solid var(--pm-line-2);color:var(--pm-accent-2);
+}
+.pm-player b{display:block;font-size:13.5px;font-weight:700}
+.pm-player small{display:block;font-size:10.5px;color:var(--pm-muted);letter-spacing:.8px;margin-top:1px}
+.pm-top-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pm-pill{
+  display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.5px;
+  border:1px solid var(--pm-line-2);background:var(--pm-surface);color:var(--pm-text-2);
+}
+.pm-pill em{font-style:normal;color:var(--pm-muted);font-size:10px;letter-spacing:1.6px}
+.pm-pill b{color:var(--pm-text);font-weight:800}
+.pm-pill.live i{width:7px;height:7px;border-radius:50%;background:var(--pm-good);box-shadow:0 0 0 3px rgba(61,220,151,.18),0 0 12px var(--pm-good)}
+.pm-close{
+  width:40px;height:40px;border-radius:13px;border:1px solid var(--pm-line-2);background:var(--pm-surface-2);color:var(--pm-text);
+  font-size:15px;cursor:pointer;transition:background .15s,border-color .15s,color .15s;
+}
+.pm-close:hover{background:rgba(255,84,112,.16);border-color:rgba(255,84,112,.5);color:#ff9aab}
+
+/* Hero row */
+.pm-hero-row{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px}
+.pm-hero{
+  position:relative;overflow:hidden;min-height:188px;border-radius:22px;border:1px solid var(--pm-line-2);
+  display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:26px 28px;
+  background:
+    linear-gradient(90deg,rgba(6,7,10,.96) 0%,rgba(6,7,10,.72) 42%,rgba(6,7,10,.18) 100%),
+    linear-gradient(0deg,rgba(6,7,10,.65),transparent 60%),
+    url("img/m-menu/03_cars.jpg") 60% 62%/cover no-repeat;
+}
+.pm-hero:after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.pm-hero-copy{position:relative;z-index:1}
+.pm-hero-copy small{font-size:10px;letter-spacing:4px;color:var(--pm-accent);font-weight:800}
+.pm-hero-copy h1{margin:8px 0 6px;font-size:40px;line-height:1;font-weight:850;letter-spacing:1px}
+.pm-hero-copy h1 em{font-style:normal;background:linear-gradient(90deg,var(--pm-accent-2),var(--pm-accent));-webkit-background-clip:text;background-clip:text;color:transparent}
+.pm-hero-copy p{margin:0;font-size:11px;letter-spacing:3px;color:var(--pm-text-2)}
+.pm-wallet{position:relative;z-index:1;display:flex;gap:10px}
+.pm-wallet div{
+  min-width:150px;padding:12px 16px;border-radius:15px;border:1px solid var(--pm-line-2);
+  background:rgba(8,9,13,.62);backdrop-filter:blur(14px);
+}
+.pm-wallet small{display:block;font-size:9.5px;letter-spacing:2.4px;color:var(--pm-muted);font-weight:700}
+.pm-wallet b{display:block;margin-top:4px;font-size:19px;font-weight:800;color:var(--pm-accent-2);letter-spacing:.3px}
+
+.pm-feature{
+  position:relative;overflow:hidden;text-align:left;cursor:pointer;color:inherit;font-family:inherit;
+  border-radius:22px;border:1px solid var(--pm-accent-line);padding:26px 28px;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:6px;
+  background:
+    radial-gradient(420px 220px at 100% 0%,rgba(255,159,28,.30),transparent 65%),
+    linear-gradient(160deg,rgba(255,159,28,.10),rgba(255,255,255,.02));
+  transition:transform .25s var(--pm-ease),box-shadow .25s var(--pm-ease),border-color .25s;
+}
+.pm-feature:hover{transform:translateY(-3px);box-shadow:0 22px 50px rgba(255,159,28,.14);border-color:var(--pm-accent)}
+.pm-feature .pm-feature-glyph{position:absolute;right:20px;top:8px;font-size:92px;line-height:1;opacity:.13;filter:saturate(1.4)}
+.pm-feature small{font-size:10px;letter-spacing:3.5px;color:var(--pm-accent);font-weight:800}
+.pm-feature h2{margin:2px 0 0;font-size:24px;font-weight:800;letter-spacing:.6px}
+.pm-feature p{margin:2px 0 8px;font-size:12.5px;color:var(--pm-text-2);max-width:260px;line-height:1.45}
+.pm-feature strong{font-size:11px;letter-spacing:2px;color:var(--pm-accent-2)}
+
+/* Module grid: 7 columns, 13 modules (Statistics spans 2) */
+.pm-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px}
+.pm-card{
+  position:relative;overflow:hidden;text-align:left;cursor:pointer;color:inherit;font-family:inherit;
+  display:flex;flex-direction:column;justify-content:space-between;gap:16px;min-height:158px;padding:18px 18px 16px;
+  border-radius:20px;border:1px solid var(--pm-line);
+  background:linear-gradient(180deg,var(--pm-surface-2),var(--pm-surface));
+  transition:transform .22s var(--pm-ease),border-color .22s,background .22s,box-shadow .22s;
+  animation:pm-rise .5s var(--pm-ease) both;animation-delay:calc(var(--i,0)*28ms);
+}
+.pm-card.wide{grid-column:span 2}
+.pm-card:before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;
+  background:radial-gradient(280px 160px at 0% 0%,rgba(255,159,28,.22),transparent 70%);
+}
+.pm-card:hover{transform:translateY(-4px);border-color:var(--pm-accent-line);box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.pm-card:hover:before{opacity:1}
+.pm-card-ico{
+  position:relative;width:46px;height:46px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:linear-gradient(145deg,rgba(255,209,102,.20),rgba(255,159,28,.08));border:1px solid var(--pm-accent-line);
+}
+.pm-card-ghost{position:absolute;right:-8px;bottom:-14px;font-size:84px;line-height:1;opacity:.05;transition:opacity .25s,transform .35s var(--pm-ease)}
+.pm-card:hover .pm-card-ghost{opacity:.10;transform:scale(1.08) rotate(-4deg)}
+.pm-card-txt{position:relative;display:block}
+.pm-card-txt b{display:block;font-size:13.5px;font-weight:800;letter-spacing:1.4px}
+.pm-card-txt small{display:block;margin-top:5px;font-size:11.5px;line-height:1.4;color:var(--pm-muted);font-weight:500}
+.pm-card-go{
+  position:absolute;right:14px;top:16px;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:var(--pm-muted);border:1px solid var(--pm-line);background:rgba(0,0,0,.25);
+  transition:all .22s var(--pm-ease);
+}
+.pm-card:hover .pm-card-go{background:var(--pm-accent);border-color:var(--pm-accent);color:#1a1000;transform:translateX(2px)}
+@keyframes pm-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+.pm-home-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:4px}
+.pm-home-foot .dc-global-nav{margin:0!important;position:static!important}
+.pm-home-foot span{font-size:10px;letter-spacing:2.4px;color:var(--pm-muted);font-weight:600}
+.pm-home-foot span b{color:var(--pm-accent)}
+
+/* Smaller screens */
+@media (max-width:1500px){
+  .pm-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+  .pm-card.wide{grid-column:span 1}
+  .pm-hero-row{grid-template-columns:minmax(0,1fr) 300px}
+  .pm-wallet div{min-width:120px}
+}
+@media (max-width:1200px){
+  #app .shell:not(.pm-off){grid-template-columns:230px 1fr!important}
+  .pm-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .pm-hero-row{grid-template-columns:1fr}
+  .pm-top-right .pm-pill:not(.live){display:none}
+}
+
+/* ---------- Home: no double padding, grid fills the screen ---------- */
+#app .shell.dc-home-mode:not(.pm-off) #content{padding:0!important}
+#app .pm-home .pm-grid{grid-auto-rows:minmax(150px,212px)}
+#app .pm-home .pm-card{min-height:0}
+#app .pm-home .pm-hero-row{flex:1 1 auto;min-height:210px;max-height:380px}
+#app .pm-home .pm-hero{min-height:0}
+#app .pm-home .pm-card-ghost{font-size:110px;opacity:.06;right:-6px;bottom:-22px}
+#app .pm-home .pm-card-txt small{font-size:12px}
+
+/* ---------- Remaining red/blue brand accents -> amber ---------- */
+#app .shell:not(.pm-off) .profile-id{color:var(--pm-accent-2)!important;letter-spacing:.4px}
+#app .shell:not(.pm-off) .avatar-ring{
+  background:radial-gradient(circle at 30% 28%,#ffe0a0,#d9810f 60%,#7a3f00)!important;
+  box-shadow:0 0 0 8px rgba(255,159,28,.10),0 18px 40px rgba(255,159,28,.20)!important;
+}
+#app .shell:not(.pm-off) .xp-level-left,#app .shell:not(.pm-off) .bp-level-badge{
+  background:linear-gradient(145deg,var(--pm-accent-2),var(--pm-accent) 60%,var(--pm-accent-deep))!important;
+  box-shadow:0 16px 36px rgba(255,159,28,.25),inset 0 1px 0 rgba(255,255,255,.45)!important;
+}
+#app .shell:not(.pm-off) .xp-level-left span,#app .shell:not(.pm-off) .xp-level-left b,
+#app .shell:not(.pm-off) .bp-level-badge span,#app .shell:not(.pm-off) .bp-level-badge b{color:#1a1000!important}
+#app .shell:not(.pm-off) .xp-progress>*,#app .shell:not(.pm-off) .xp-progress i,#app .shell:not(.pm-off) .xp-progress div>div{
+  background:linear-gradient(90deg,var(--pm-accent),var(--pm-accent-2))!important;
+}
+#app .shell:not(.pm-off) .mini-ico,#app .shell:not(.pm-off) .premium-tile-icon,#app .shell:not(.pm-off) .intro-icon{
+  background:linear-gradient(145deg,rgba(255,209,102,.18),rgba(255,159,28,.07))!important;border:1px solid var(--pm-accent-line)!important;border-radius:14px!important;
+}
+#app .shell:not(.pm-off) .org-badge{background:var(--pm-accent-soft)!important;color:var(--pm-accent-2)!important;border-radius:999px!important}
+#app .shell:not(.pm-off) .org-card,#app .shell:not(.pm-off) .fam3-property-card{border-left:1px solid var(--pm-line)!important}
+
+/* Errors / danger keep a real red */
+#app .shell:not(.pm-off) .store-v2-error,#app .shell:not(.pm-off) .ref-v1-error,
+#app .shell:not(.pm-off) .prime2-error,#app .shell:not(.pm-off) .error{color:var(--pm-bad)!important}
+
+/* ---------- Full-screen modes keep their own chrome (no sidebar / header) ---------- */
+#app .shell.flow-mode:not(.pm-off) .sidebar,
+#app .shell.dc-home-mode:not(.pm-off) .sidebar,
+#app .shell.dc-spawn-mode:not(.pm-off) .sidebar{display:none!important}
+#app .shell.dc-spawn-mode:not(.pm-off) .title,
+#app .shell.dc-spawn-mode:not(.pm-off) .dc-global-nav,
+#app .shell.dc-spawn-mode:not(.pm-off) .menu-footer{display:none!important}
+#app .shell.dc-spawn-mode:not(.pm-off) #content{padding:0!important}
+
+/* ---------- Inner tab containers: neutral glass instead of the old brown gradient ---------- */
+#app .shell:not(.pm-off) .fam3-nav,#app .shell:not(.pm-off) .bp-tabs,#app .shell:not(.pm-off) .prime2-tabs,
+#app .shell:not(.pm-off) .setting-segments,#app .shell:not(.pm-off) .store-v2-tabs,#app .shell:not(.pm-off) .achievement-tabs{
+  background:linear-gradient(180deg,var(--pm-surface-2),var(--pm-surface))!important;
+  border:1px solid var(--pm-line)!important;border-radius:var(--pm-radius)!important;box-shadow:none!important;
+}
+#app .shell:not(.pm-off) .fam3-nav-title{color:var(--pm-accent)!important;letter-spacing:2.6px!important;font-size:11px!important;font-weight:800!important}
+#app .shell:not(.pm-off) .fam3-shell{height:calc(95.2vh - 245px)!important;min-height:520px}
+
+/* ---------- Final cleanups ---------- */
+#app .shell:not(.pm-off) .navicon{filter:none!important;font-size:11px!important}
+#app .shell:not(.pm-off) .dc-nav-home-entry .navicon{font-size:15px!important}
+#app .shell:not(.pm-off) #content,#app .shell:not(.pm-off) .pagebody{background:transparent!important;background-image:none!important}
+#app .shell:not(.pm-off) .pagebody:before,#app .shell:not(.pm-off) .pagebody:after,
+#app .shell:not(.pm-off) #content:before,#app .shell:not(.pm-off) #content:after{display:none!important}
+
+/* ==========================================================================
+   PREMIUM ART LAYER (v2.1)
+   Photos live ONLY in two controlled places, never behind text:
+   1) the page header: a cinematic strip in the middle, fading to solid dark on
+      both ends so the title (left) and the chips/nav (right) stay on clean glass
+   2) a small framed thumbnail on compact cards, with reserved padding so text
+      can never run underneath it
+   ========================================================================== */
+
+/* 1) Header photo strip (image comes from --page-bg set by wrap()) */
+#app .shell:not(.pm-off) .title,#app .shell:not(.pm-off) .title.premium-title{
+  background:
+    linear-gradient(90deg,rgba(11,12,17,.98) 0%,rgba(11,12,17,.93) 26%,rgba(11,12,17,.50) 50%,rgba(11,12,17,.78) 74%,rgba(11,12,17,.97) 100%),
+    var(--page-bg) center 35%/cover no-repeat,
+    radial-gradient(500px 160px at 0% 0%,rgba(255,159,28,.16),transparent 70%),
+    linear-gradient(180deg,var(--pm-surface-2),var(--pm-surface))!important;
+  position:relative;overflow:hidden;
+}
+#app .shell:not(.pm-off) .title .titleleft,#app .shell:not(.pm-off) .title .title-right-pack{position:relative;z-index:1}
+
+/* 2) Card thumbnails (JS only sets --pm-thumb + the .pm-thumbed class) */
+#app .shell:not(.pm-off) .pm-thumbed{
+  position:relative;
+  padding-right:calc(var(--pm-thumb-w,84px) + 34px)!important;
+}
+#app .shell:not(.pm-off) .pm-thumbed.pm-thumbed:after{
+  content:""!important;display:block!important;
+  position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  width:var(--pm-thumb-w,84px);height:calc(100% - 28px);max-height:96px;min-height:56px;
+  border-radius:13px;pointer-events:none;
+  background-image:
+    linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.5)),
+    var(--pm-thumb)!important;
+  background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;
+  border:1px solid var(--pm-accent-line);
+  box-shadow:0 8px 22px rgba(0,0,0,.45),0 0 0 3px rgba(255,159,28,.06);
+  opacity:1!important;
+}
+#app .shell:not(.pm-off) .pm-thumbed:hover:after{border-color:var(--pm-accent);box-shadow:0 10px 26px rgba(0,0,0,.5),0 0 0 3px rgba(255,159,28,.14)}
+
+/* Corner thumbnail: tall cards whose top row only holds an icon (top-right is free) */
+#app .shell:not(.pm-off) .pm-corner{position:relative}
+#app .shell:not(.pm-off) .pm-corner.pm-corner:after{
+  content:""!important;display:block!important;
+  position:absolute;top:18px;right:18px;width:104px;height:66px;
+  border-radius:13px;pointer-events:none;
+  background-image:linear-gradient(180deg,rgba(0,0,0,0) 45%,rgba(0,0,0,.5)),var(--pm-thumb)!important;
+  background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;
+  border:1px solid var(--pm-accent-line);
+  box-shadow:0 8px 22px rgba(0,0,0,.45),0 0 0 3px rgba(255,159,28,.06);
+  opacity:1!important;
+}
+#app .shell:not(.pm-off) .pm-corner:hover:after{border-color:var(--pm-accent)}
+
+/* ==========================================================================
+   HOME TILE PHOTOS
+   Full-bleed photo per tile (clean ai/ set, no baked-in titles). The photo is
+   bright at the top and fades to near-solid dark at the bottom, where the text
+   sits, so text and photo never compete.
+   ========================================================================== */
+.pm-card-photo,.pm-feature-photo{
+  position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(6,7,10,.08) 0%,rgba(6,7,10,.18) 34%,rgba(6,7,10,.80) 70%,rgba(6,7,10,.97) 100%),
+    var(--ph) center/cover no-repeat;
+  transform:scale(1.02);
+  transition:transform .7s var(--pm-ease),filter .4s;
+}
+.pm-card:hover .pm-card-photo,.pm-feature:hover .pm-feature-photo{transform:scale(1.09);filter:saturate(1.12) brightness(1.06)}
+.pm-card:before{z-index:1}
+.pm-card .pm-card-ico,.pm-card .pm-card-go,.pm-card .pm-card-txt{z-index:2}
+.pm-card .pm-card-ico{
+  background:rgba(8,9,13,.58)!important;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border-color:rgba(255,209,102,.38)!important;box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+.pm-card .pm-card-go{background:rgba(8,9,13,.55);color:var(--pm-text-2);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.pm-card .pm-card-txt b{color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.8)}
+#app .pm-home .pm-card .pm-card-txt small{color:#d8d4cc;text-shadow:0 1px 8px rgba(0,0,0,.9)}
+.pm-card .pm-card-ghost{display:none}
+
+/* Daily Reward feature card */
+.pm-feature .pm-feature-photo{
+  background:
+    linear-gradient(180deg,rgba(6,7,10,.12) 0%,rgba(6,7,10,.30) 38%,rgba(6,7,10,.86) 78%,rgba(6,7,10,.97) 100%),
+    radial-gradient(420px 220px at 100% 0%,rgba(255,159,28,.28),transparent 65%),
+    var(--ph) center/cover no-repeat;
+}
+.pm-feature>*:not(.pm-feature-photo){position:relative;z-index:2}
+.pm-feature .pm-feature-glyph{position:absolute;display:none}
+.pm-feature h2{text-shadow:0 2px 12px rgba(0,0,0,.8)}
+.pm-feature p{color:#e2ded6;text-shadow:0 1px 8px rgba(0,0,0,.9)}
+
+/* Daily Reward feature card: text sits on the left, so the photo is darkened from
+   the left (solid behind the text) and stays bright on the right where it is only art. */
+#app .pm-home .pm-feature .pm-feature-photo{
+  background:
+    linear-gradient(90deg,rgba(8,9,13,.97) 0%,rgba(8,9,13,.90) 42%,rgba(8,9,13,.45) 72%,rgba(8,9,13,.12) 100%),
+    linear-gradient(180deg,rgba(8,9,13,.25) 0%,rgba(8,9,13,.55) 100%),
+    var(--ph) right center/cover no-repeat;
+}
+
+/* ==========================================================================
+   PREMIUM POLISH (v2.5) — gold hairlines, glass depth, subtle motion
+   Plain CSS only (no :is/:has/@layer) so it works in older FiveM CEF builds.
+   ========================================================================== */
+
+/* Frame: thin champagne-gold edge + deeper shadow around the whole menu */
+#app .shell{
+  box-shadow:
+    0 0 0 1px rgba(255,209,102,.16),
+    0 40px 120px rgba(0,0,0,.65),
+    0 0 90px rgba(255,159,28,.07),
+    inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+
+/* Logo: metallic gold badge with soft glow */
+.pm-logo{
+  background:linear-gradient(145deg,#ffe08a 0%,#ffb236 38%,#d97800 100%)!important;
+  color:#2a1700!important;
+  box-shadow:0 8px 26px rgba(255,159,28,.45),inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 0 rgba(120,60,0,.35)!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.35);
+}
+.pm-brand b{background:linear-gradient(180deg,#fff,#e8dcc4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* Live pill: pulsing green dot */
+.pm-pill.live i{animation:pm-pulse 1.8s ease-in-out infinite}
+@keyframes pm-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(61,220,151,.55)}
+  50%{box-shadow:0 0 0 6px rgba(61,220,151,0)}
+}
+
+/* Hero: gold underline under the title + shimmering "RP" */
+.pm-hero-copy h1{position:relative;padding-bottom:12px}
+.pm-hero-copy h1:after{
+  content:"";position:absolute;left:0;bottom:0;width:86px;height:3px;border-radius:3px;
+  background:linear-gradient(90deg,var(--pm-accent-2),var(--pm-accent) 60%,transparent);
+}
+.pm-hero-copy h1 em{
+  background-size:220% 100%;
+  background-image:linear-gradient(100deg,#ffb236 0%,#ffe9a8 32%,#ffb236 55%,#ff9f1c 100%);
+  animation:pm-shine 5.5s linear infinite;
+}
+@keyframes pm-shine{0%{background-position:0% 0}100%{background-position:-220% 0}}
+
+/* Wallet chips: gold-tinted glass */
+.pm-wallet > div{
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02))!important;
+  border:1px solid rgba(255,209,102,.20)!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.10);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.pm-wallet b{
+  background:linear-gradient(180deg,#fff1c2,#ffbf47);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;text-shadow:none;
+}
+
+/* Daily Reward: breathing gold glow + real button for the call to action */
+.pm-feature{animation:pm-breathe 3.6s ease-in-out infinite}
+@keyframes pm-breathe{
+  0%,100%{box-shadow:0 0 0 1px rgba(255,159,28,.28),0 12px 40px rgba(0,0,0,.45),0 0 26px rgba(255,159,28,.10)}
+  50%{box-shadow:0 0 0 1px rgba(255,209,102,.55),0 12px 40px rgba(0,0,0,.45),0 0 46px rgba(255,159,28,.28)}
+}
+.pm-feature strong{
+  display:inline-block;margin-top:2px;padding:7px 14px;border-radius:999px;
+  background:linear-gradient(180deg,#ffc24d,#ff9f1c);color:#2a1700!important;
+  box-shadow:0 6px 18px rgba(255,159,28,.35),inset 0 1px 0 rgba(255,255,255,.5);
+  position:relative;z-index:2;
+}
+
+/* Tiles: top light-edge, gold icon chip, light sweep on hover */
+.pm-card{box-shadow:0 10px 28px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.07)}
+.pm-card .pm-card-ico{
+  background:linear-gradient(145deg,rgba(255,209,102,.30),rgba(255,159,28,.10))!important;
+  border:1px solid rgba(255,209,102,.40)!important;
+  box-shadow:0 6px 16px rgba(0,0,0,.45),0 0 18px rgba(255,159,28,.18),inset 0 1px 0 rgba(255,255,255,.25);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.pm-card:after{
+  content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;z-index:1;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);
+  transform:skewX(-18deg);opacity:0;
+}
+.pm-card:hover:after{opacity:1;left:130%;transition:left .85s var(--pm-ease),opacity .2s}
+.pm-card:hover{border-color:rgba(255,209,102,.55);box-shadow:0 20px 46px rgba(0,0,0,.55),0 0 0 1px rgba(255,209,102,.22),0 0 34px rgba(255,159,28,.14)}
+.pm-card:hover .pm-card-txt b{color:var(--pm-accent-2)}
+
+/* Footer hint dot glows */
+.pm-home-foot span b{color:var(--pm-accent);text-shadow:0 0 10px rgba(255,159,28,.8)}
+
+/* Slim gold scrollbars for long pages */
+#content::-webkit-scrollbar,.pagebody::-webkit-scrollbar{width:8px;height:8px}
+#content::-webkit-scrollbar-track,.pagebody::-webkit-scrollbar-track{background:transparent}
+#content::-webkit-scrollbar-thumb,.pagebody::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,rgba(255,209,102,.55),rgba(255,159,28,.35));border-radius:8px;border:2px solid transparent;background-clip:padding-box;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .pm-pill.live i,.pm-hero-copy h1 em,.pm-feature{animation:none}
+}
+.pm-feature strong{align-self:flex-start}
