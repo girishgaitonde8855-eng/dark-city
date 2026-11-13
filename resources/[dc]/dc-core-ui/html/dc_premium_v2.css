@@ -575,3 +575,103 @@ html,body{font-family:var(--pm-font)!important;color:var(--pm-text)}
     linear-gradient(180deg,rgba(8,9,13,.25) 0%,rgba(8,9,13,.55) 100%),
     var(--ph) right center/cover no-repeat;
 }
+
+/* ==========================================================================
+   PREMIUM POLISH (v2.5) — gold hairlines, glass depth, subtle motion
+   Plain CSS only (no :is/:has/@layer) so it works in older FiveM CEF builds.
+   ========================================================================== */
+
+/* Frame: thin champagne-gold edge + deeper shadow around the whole menu */
+#app .shell{
+  box-shadow:
+    0 0 0 1px rgba(255,209,102,.16),
+    0 40px 120px rgba(0,0,0,.65),
+    0 0 90px rgba(255,159,28,.07),
+    inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+
+/* Logo: metallic gold badge with soft glow */
+.pm-logo{
+  background:linear-gradient(145deg,#ffe08a 0%,#ffb236 38%,#d97800 100%)!important;
+  color:#2a1700!important;
+  box-shadow:0 8px 26px rgba(255,159,28,.45),inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 0 rgba(120,60,0,.35)!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.35);
+}
+.pm-brand b{background:linear-gradient(180deg,#fff,#e8dcc4);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* Live pill: pulsing green dot */
+.pm-pill.live i{animation:pm-pulse 1.8s ease-in-out infinite}
+@keyframes pm-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(61,220,151,.55)}
+  50%{box-shadow:0 0 0 6px rgba(61,220,151,0)}
+}
+
+/* Hero: gold underline under the title + shimmering "RP" */
+.pm-hero-copy h1{position:relative;padding-bottom:12px}
+.pm-hero-copy h1:after{
+  content:"";position:absolute;left:0;bottom:0;width:86px;height:3px;border-radius:3px;
+  background:linear-gradient(90deg,var(--pm-accent-2),var(--pm-accent) 60%,transparent);
+}
+.pm-hero-copy h1 em{
+  background-size:220% 100%;
+  background-image:linear-gradient(100deg,#ffb236 0%,#ffe9a8 32%,#ffb236 55%,#ff9f1c 100%);
+  animation:pm-shine 5.5s linear infinite;
+}
+@keyframes pm-shine{0%{background-position:0% 0}100%{background-position:-220% 0}}
+
+/* Wallet chips: gold-tinted glass */
+.pm-wallet > div{
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02))!important;
+  border:1px solid rgba(255,209,102,.20)!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.10);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.pm-wallet b{
+  background:linear-gradient(180deg,#fff1c2,#ffbf47);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;text-shadow:none;
+}
+
+/* Daily Reward: breathing gold glow + real button for the call to action */
+.pm-feature{animation:pm-breathe 3.6s ease-in-out infinite}
+@keyframes pm-breathe{
+  0%,100%{box-shadow:0 0 0 1px rgba(255,159,28,.28),0 12px 40px rgba(0,0,0,.45),0 0 26px rgba(255,159,28,.10)}
+  50%{box-shadow:0 0 0 1px rgba(255,209,102,.55),0 12px 40px rgba(0,0,0,.45),0 0 46px rgba(255,159,28,.28)}
+}
+.pm-feature strong{
+  display:inline-block;margin-top:2px;padding:7px 14px;border-radius:999px;
+  background:linear-gradient(180deg,#ffc24d,#ff9f1c);color:#2a1700!important;
+  box-shadow:0 6px 18px rgba(255,159,28,.35),inset 0 1px 0 rgba(255,255,255,.5);
+  position:relative;z-index:2;
+}
+
+/* Tiles: top light-edge, gold icon chip, light sweep on hover */
+.pm-card{box-shadow:0 10px 28px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.07)}
+.pm-card .pm-card-ico{
+  background:linear-gradient(145deg,rgba(255,209,102,.30),rgba(255,159,28,.10))!important;
+  border:1px solid rgba(255,209,102,.40)!important;
+  box-shadow:0 6px 16px rgba(0,0,0,.45),0 0 18px rgba(255,159,28,.18),inset 0 1px 0 rgba(255,255,255,.25);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.pm-card:after{
+  content:"";position:absolute;top:0;bottom:0;left:-60%;width:45%;z-index:1;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);
+  transform:skewX(-18deg);opacity:0;
+}
+.pm-card:hover:after{opacity:1;left:130%;transition:left .85s var(--pm-ease),opacity .2s}
+.pm-card:hover{border-color:rgba(255,209,102,.55);box-shadow:0 20px 46px rgba(0,0,0,.55),0 0 0 1px rgba(255,209,102,.22),0 0 34px rgba(255,159,28,.14)}
+.pm-card:hover .pm-card-txt b{color:var(--pm-accent-2)}
+
+/* Footer hint dot glows */
+.pm-home-foot span b{color:var(--pm-accent);text-shadow:0 0 10px rgba(255,159,28,.8)}
+
+/* Slim gold scrollbars for long pages */
+#content::-webkit-scrollbar,.pagebody::-webkit-scrollbar{width:8px;height:8px}
+#content::-webkit-scrollbar-track,.pagebody::-webkit-scrollbar-track{background:transparent}
+#content::-webkit-scrollbar-thumb,.pagebody::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,rgba(255,209,102,.55),rgba(255,159,28,.35));border-radius:8px;border:2px solid transparent;background-clip:padding-box;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .pm-pill.live i,.pm-hero-copy h1 em,.pm-feature{animation:none}
+}
+.pm-feature strong{align-self:flex-start}
