@@ -1044,7 +1044,7 @@ function renderStatistics(p){
     return `<div class="lb-item"><div class="lb-main"><b>${esc(v.name || v.model || 'Vehicle')}</b><small>PLATE ${esc(v.plate || '—')}${place ? ' · '+esc(place) : ''}</small></div>
       <button type="button" class="lb-map" onclick="locateVehicleUI(${jsArg(v.plate || '')},${jsArg(v.name || 'Vehicle')})">${LB_PIN}<span>MAP</span></button></div>`;
   }).join('') : `<div class="lb-item"><div class="lb-main"><b>None</b><small>NONE</small></div></div>`;
-  const tabs = [['Profile','statisticsTab'],['Jobs','jobs'],['Legal',null],['Illegal',null],['Collections','achievement']];
+  const tabs = [['Profile','statisticsTab']];
   const tabsHtml = tabs.map(([l,v]) => v
     ? `<button type="button" class="lb-tab ${v==='statisticsTab'?'on':''}" onclick="switchView('${v}')">${l}</button>`
     : `<span class="lb-tab off">${l}</span>`).join('');
