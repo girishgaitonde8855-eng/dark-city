@@ -709,7 +709,6 @@ function wrap(title, body, extra = ''){
   if (menuApp) menuApp.style.zoom = String(uiSettings.ui_scale / 100);
   if (shell) shell.classList.remove('dc-home-mode','dc-spawn-mode','lb-mode');
   shell.classList.toggle('flow-mode', !showSidebar());
-  shell.classList.toggle('lb-mode', state.view === 'statisticsTab');
   document.getElementById('nav').innerHTML = showSidebar() ? nav() : '';
   const p = state.data?.player || {};
   const content = document.getElementById('content');
@@ -1014,85 +1013,70 @@ function renderStatistics(p){
     </div>`;
   }).join('') : emptyPremium('🚗','No vehicles owned','Vehicles you buy will appear here with their number plate.');
 
-  // ---- Libra-style citizen profile ----
+  // ---- Dark City citizen profile ----
   const prof = state.data?.profile || {};
   const gender = Number(prof.gender) === 1 ? 'Female' : 'Male';
-  const faction = p.faction && p.faction.label ? p.faction.label : null;
+  const faction = p.faction && p.faction.label ? p.faction.label : 'No organization';
   const warnings = Number(prof.warnings || 0);
   const fines = Number(prof.fines || 0);
-  const pad2 = n => String(n).padStart(2,'0');
   const toNext = Math.max(0, nextXp - xp);
   const initials = String(p.name || 'P').split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
-  const lbRow = (k,v,cls='') => `<div class="lb-kv"><span>${k}</span><b class="${cls}">${v}</b></div>`;
+  const jobName = p.job?.label || p.job?.name || 'Citizen';
+  const tile = (ico, label, val, cls='') => `<div class="dp-tile ${cls}"><i>${ico}</i><div><span>${label}</span><b>${val}</b></div></div>`;
   const permitDefs = [
-    ['driver','Driver License'],['weapon','Weapon License'],['helicopter','Pilot License'],
-    ['boat','Boat License'],['fishing','Fishing License'],['hunting','Hunting License'],['lawyer','Lawyer License']
+    ['driver','Driver','🚗'],['weapon','Weapon','🔫'],['helicopter','Pilot','🚁'],
+    ['boat','Boat','🚤'],['fishing','Fishing','🎣'],['hunting','Hunting','🦌'],['lawyer','Lawyer','⚖️']
   ];
-  const permitHtml = permitDefs.map(([type,label]) => {
+  const permitHtml = permitDefs.map(([type,label,ico]) => {
     const row = licenceByType[type];
     const valid = !!(row && (row.is_valid === true || Number(row.is_valid) === 1));
-    const st = !row ? ['MISSING',''] : (valid ? ['VALID','ok'] : ['EXPIRED','bad']);
-    return `<div class="lb-item"><div class="lb-ico">🪪</div><div class="lb-main"><b>${label}</b><small class="${st[1]}">${st[0]}</small></div></div>`;
+    const st = !row ? ['Missing','none'] : (valid ? ['Valid','ok'] : ['Expired','bad']);
+    return `<div class="dp-row"><i class="dp-ico">${ico}</i><div class="dp-rmain"><b>${label} Licence</b></div><em class="dp-pill ${st[1]}">${st[0]}</em></div>`;
   }).join('');
   const resHtml = ownedHouses.length ? ownedHouses.map(h => {
     const hasPos = h.x !== null && h.y !== null && h.x !== undefined && h.y !== undefined && Number.isFinite(Number(h.x)) && Number.isFinite(Number(h.y));
-    return `<div class="lb-item"><div class="lb-main"><b>${esc(h.label || 'House')}</b><small>${esc([h.location, h.class ? 'CLASS '+h.class : ''].filter(Boolean).join(' · ').toUpperCase() || 'HOUSE #'+(h.id ?? ''))}</small></div>
-      ${hasPos ? `<button type="button" class="lb-map" onclick="setWaypointUI(${Number(h.x)},${Number(h.y)},${jsArg(h.label || 'House')})">${LB_PIN}<span>MAP</span></button>` : ''}</div>`;
-  }).join('') : `<div class="lb-item"><div class="lb-main"><b>None</b><small>NONE</small></div></div>`;
+    return `<div class="dp-row"><i class="dp-ico">🏠</i><div class="dp-rmain"><b>${esc(h.label || 'House')}</b><small>${esc([h.location, h.class ? 'Class '+h.class : ''].filter(Boolean).join(' • ') || 'House #'+(h.id ?? ''))}</small></div>
+      ${hasPos ? `<button type="button" class="dp-go" onclick="setWaypointUI(${Number(h.x)},${Number(h.y)},${jsArg(h.label || 'House')})">📍 Locate</button>` : ''}</div>`;
+  }).join('') : `<div class="dp-empty">🏠<b>No properties yet</b><small>Houses you buy will show here with a GPS button.</small></div>`;
+  const stMap = { 0:['Out','out'], 1:['Garaged','in'], 2:['Impounded','bad'] };
   const vehHtml = ownedVehicles.length ? ownedVehicles.map(v => {
-    const st = { 0:'OUT', 1:'', 2:'IMPOUNDED' }[Number(v.state)];
-    const place = st || (v.garage ? 'PARKING ' + String(v.garage).toUpperCase() : '');
-    return `<div class="lb-item"><div class="lb-main"><b>${esc(v.name || v.model || 'Vehicle')}</b><small>PLATE ${esc(v.plate || '—')}${place ? ' · '+esc(place) : ''}</small></div>
-      <button type="button" class="lb-map" onclick="locateVehicleUI(${jsArg(v.plate || '')},${jsArg(v.name || 'Vehicle')})">${LB_PIN}<span>MAP</span></button></div>`;
-  }).join('') : `<div class="lb-item"><div class="lb-main"><b>None</b><small>NONE</small></div></div>`;
-  const tabs = [['Profile','statisticsTab']];
-  const tabsHtml = tabs.map(([l,v]) => v
-    ? `<button type="button" class="lb-tab ${v==='statisticsTab'?'on':''}" onclick="switchView('${v}')">${l}</button>`
-    : `<span class="lb-tab off">${l}</span>`).join('');
+    const st = stMap[Number(v.state)];
+    return `<div class="dp-row"><i class="dp-ico">🚘</i><div class="dp-rmain"><b>${esc(v.name || v.model || 'Vehicle')}</b><small>${st ? `<u class="${st[1]}">${st[0]}</u>` : ''}${v.garage ? ' ' + esc(String(v.garage)) : ''}</small></div>
+      <span class="dp-plate">${esc(v.plate || '—')}</span>
+      <button type="button" class="dp-go ic" title="Locate" onclick="locateVehicleUI(${jsArg(v.plate || '')},${jsArg(v.name || 'Vehicle')})">📍</button></div>`;
+  }).join('') : `<div class="dp-empty">🚘<b>No vehicles yet</b><small>Your cars will show here with their number plates.</small></div>`;
+  const ringPct = Math.min(100, Math.max(0, xpPct));
   return wrap('Statistics',
-    `<div class="lb-root">
-      <header class="lb-top"><div class="lb-brand">DARK CITY <b>ROLEPLAY</b></div><div class="lb-topr"><button type="button" class="lb-menu" onclick="switchView('home')">MENU</button><button type="button" class="lb-close" onclick="closeUi()"><kbd>ESC</kbd> CLOSE</button></div></header>
-      <aside class="lb-side">
-        <div class="lb-eyebrow">CITIZEN RECORD</div>
-        <div class="lb-avatar"><span>${esc(initials)}</span></div>
-        <div class="lb-name">${esc(p.name || 'Player')}</div>
-        <div class="lb-sub">ID ${visiblePlayerId(p.player_id || 0)} · ${gender}</div>
-        <div class="lb-level"><b>${level}</b><span>LEVEL</span></div>
-        <div class="lb-points">${xp} points</div>
-        <div class="lb-bar"><i style="width:${xpPct}%"></i></div>
-        <div class="lb-next">${toNext} points to level ${level + 1}</div>
-        <div class="lb-eyebrow lb-org">ORGANIZATION</div>
-        <div class="lb-orgname">${esc(faction || 'None')}</div>
-        <div class="lb-kvs">
-          ${lbRow('Warnings', `${warnings} of 3`)}
-          ${lbRow('Spouse', esc(prof.spouse || 'Single'))}
-          ${lbRow('Fines', money(fines), fines > 0 ? 'bad' : '')}
-          ${lbRow('Business', esc(prof.business || 'None'))}
-          ${lbRow('Cash', money(p.cash || 0))}
-          ${lbRow('Bank', money(p.bank || 0))}
+    `<div class="dp-root">
+      <section class="dp-hero">
+        <div class="dp-who">
+          <div class="dp-avatar"><span>${esc(initials)}</span></div>
+          <div>
+            <h2>${esc(p.name || 'Player')}</h2>
+            <p>ID ${visiblePlayerId(p.player_id || 0)} • ${gender}</p>
+            <div class="dp-chips"><em>💼 ${esc(jobName)}</em><em>🛡️ ${esc(faction)}</em><em class="${prof.prime ? 'gold' : ''}">💎 ${prof.prime ? 'Prime' : 'No Prime'}</em></div>
+          </div>
         </div>
-      </aside>
-      <section class="lb-main-col">
-        <nav class="lb-tabs">${tabsHtml}</nav>
-        <div class="lb-head"><h2>Your <b>profile.</b></h2><span>PERSONAL OVERVIEW</span></div>
-        <div class="lb-strip">
-          <div><span>MEMBERSHIP</span><b>${prof.prime ? 'Prime active' : 'Prime inactive'}</b></div>
-          <div class="r"><span>CIVILIAN PACKAGE</span><b>${esc(prof.package || 'None')}</b></div>
-        </div>
-        <div class="lb-cols">
-          <div class="lb-col"><div class="lb-colhead"><b>Residencies</b><span>${pad2(ownedHouses.length)}</span></div><div class="lb-list">${resHtml}</div></div>
-          <div class="lb-col"><div class="lb-colhead"><b>Vehicles</b><span>${pad2(ownedVehicles.length)}</span></div><div class="lb-list">${vehHtml}</div></div>
-          <div class="lb-col"><div class="lb-colhead"><b>Permits</b><span>${pad2(permitDefs.length)}</span></div><div class="lb-list">${permitHtml}</div></div>
-        </div>
-        <div class="lb-foot">
-          <div><b>Prime: 1 removal per month</b><small>Active Prime required. Resets on the 1st.</small></div>
-          <button type="button" class="lb-btn" disabled>REMOVE 1 WARNING</button>
+        <div class="dp-level">
+          <div class="dp-ring" style="--p:${ringPct}"><div><small>LEVEL</small><b>${level}</b></div></div>
+          <div class="dp-lvtext"><b>${xp} <span>/ ${nextXp} XP</span></b><small>${toNext} XP to level ${level + 1}</small></div>
         </div>
       </section>
-      <footer class="lb-bottom"><span>DARK CITY · CITIZEN SERVICES</span><span>PASSPORT</span></footer>
+      <section class="dp-tiles">
+        ${tile('💵','Cash',money(p.cash || 0))}
+        ${tile('🏦','Bank',money(p.bank || 0))}
+        ${tile('⚠️','Warnings',`${warnings} / 3`, warnings > 0 ? 'warn' : '')}
+        ${tile('🧾','Fines',money(fines), fines > 0 ? 'warn' : '')}
+        ${tile('💍','Spouse',esc(prof.spouse || 'Single'))}
+        ${tile('🏪','Business',esc(prof.business || 'None'))}
+      </section>
+      <section class="dp-grid">
+        <div class="dp-card"><header><h3>🏠 Properties</h3><span>${ownedHouses.length}</span></header><div class="dp-list">${resHtml}</div></div>
+        <div class="dp-card"><header><h3>🚘 Vehicles</h3><span>${ownedVehicles.length}</span></header><div class="dp-list">${vehHtml}</div></div>
+        <div class="dp-card"><header><h3>🪪 Permits</h3><span>${permitDefs.length}</span></header><div class="dp-list">${permitHtml}</div></div>
+      </section>
     </div>`);
 }
-const LB_PIN = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
 function locateVehicleUI(plate, label){ post('locateVehicle', { plate, label }); }
 
 function storeDate(value){
