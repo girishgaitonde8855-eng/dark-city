@@ -1201,6 +1201,24 @@ safeRegisterNui('setWaypoint', function(data, cb)
     cb({ ok = true })
 end)
 
+safeRegisterNui('locateVehicle', function(data, cb)
+    local want = tostring(data.plate or ''):gsub('%s+', ''):upper()
+    local found
+    if want ~= '' then
+        for _, veh in ipairs(GetGamePool('CVehicle')) do
+            local pl = tostring(GetVehicleNumberPlateText(veh) or ''):gsub('%s+', ''):upper()
+            if pl == want then found = veh break end
+        end
+    end
+    if found then
+        local c = GetEntityCoords(found)
+        setWaypoint({ x = c.x, y = c.y, label = data.label or 'Vehicle' })
+    else
+        safeNotify('Vehicle not found nearby. It is probably in the garage.', 'error')
+    end
+    cb({ ok = true })
+end)
+
 safeRegisterNui('openOrg', function(_, cb)
     openOrgMenu()
     cb({ ok = true })

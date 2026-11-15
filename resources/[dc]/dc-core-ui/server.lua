@@ -926,6 +926,20 @@ QBCore.Functions.CreateCallback('dc-core-ui:server:GetData', function(src, cb, v
 
             base.owned_houses = getOwnedHouses(p.player_id, citizenid)
             base.owned_vehicles = getOwnedVehicles(p.player_id, citizenid)
+
+            -- Libra-style profile extras. Read from qb-core metadata when present;
+            -- otherwise sensible defaults so the page never errors.
+            local md = (P and P.PlayerData and P.PlayerData.metadata) or {}
+            local ci = (P and P.PlayerData and P.PlayerData.charinfo) or {}
+            base.profile = {
+                gender = tonumber(ci.gender) or 0,
+                warnings = tonumber(md.warnings and (type(md.warnings) == 'table' and #md.warnings or md.warnings)) or 0,
+                fines = tonumber(md.fines) or 0,
+                spouse = type(md.spouse) == 'string' and md.spouse or nil,
+                business = type(md.business) == 'string' and md.business or nil,
+                prime = md.prime == true,
+                package = type(md.civilian_package) == 'string' and md.civilian_package or nil,
+            }
         end
 
         if view == 'dailyReward' then

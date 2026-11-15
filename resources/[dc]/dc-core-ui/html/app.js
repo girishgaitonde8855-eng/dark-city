@@ -1013,37 +1013,84 @@ function renderStatistics(p){
     </div>`;
   }).join('') : emptyPremium('🚗','No vehicles owned','Vehicles you buy will appear here with their number plate.');
 
+  // ---- Libra-style citizen profile ----
+  const prof = state.data?.profile || {};
+  const gender = Number(prof.gender) === 1 ? 'Female' : 'Male';
+  const faction = p.faction && p.faction.label ? p.faction.label : null;
+  const warnings = Number(prof.warnings || 0);
+  const fines = Number(prof.fines || 0);
+  const pad2 = n => String(n).padStart(2,'0');
+  const toNext = Math.max(0, nextXp - xp);
+  const initials = String(p.name || 'P').split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase();
+  const lbRow = (k,v,cls='') => `<div class="lb-kv"><span>${k}</span><b class="${cls}">${v}</b></div>`;
+  const permitDefs = [
+    ['driver','Driver License'],['weapon','Weapon License'],['helicopter','Pilot License'],
+    ['boat','Boat License'],['fishing','Fishing License'],['hunting','Hunting License'],['lawyer','Lawyer License']
+  ];
+  const permitHtml = permitDefs.map(([type,label]) => {
+    const row = licenceByType[type];
+    const valid = !!(row && (row.is_valid === true || Number(row.is_valid) === 1));
+    const st = !row ? ['MISSING',''] : (valid ? ['VALID','ok'] : ['EXPIRED','bad']);
+    return `<div class="lb-item"><div class="lb-ico">🪪</div><div class="lb-main"><b>${label}</b><small class="${st[1]}">${st[0]}</small></div></div>`;
+  }).join('');
+  const resHtml = ownedHouses.length ? ownedHouses.map(h => {
+    const hasPos = h.x !== null && h.y !== null && h.x !== undefined && h.y !== undefined && Number.isFinite(Number(h.x)) && Number.isFinite(Number(h.y));
+    return `<div class="lb-item"><div class="lb-main"><b>${esc(h.label || 'House')}</b><small>${esc([h.location, h.class ? 'CLASS '+h.class : ''].filter(Boolean).join(' · ').toUpperCase() || 'HOUSE #'+(h.id ?? ''))}</small></div>
+      ${hasPos ? `<button type="button" class="lb-map" onclick="setWaypointUI(${Number(h.x)},${Number(h.y)},${jsArg(h.label || 'House')})">${LB_PIN}<span>MAP</span></button>` : ''}</div>`;
+  }).join('') : `<div class="lb-item"><div class="lb-main"><b>None</b><small>NONE</small></div></div>`;
+  const vehHtml = ownedVehicles.length ? ownedVehicles.map(v => {
+    const st = { 0:'OUT', 1:'', 2:'IMPOUNDED' }[Number(v.state)];
+    const place = st || (v.garage ? 'PARKING ' + String(v.garage).toUpperCase() : '');
+    return `<div class="lb-item"><div class="lb-main"><b>${esc(v.name || v.model || 'Vehicle')}</b><small>PLATE ${esc(v.plate || '—')}${place ? ' · '+esc(place) : ''}</small></div>
+      <button type="button" class="lb-map" onclick="locateVehicleUI(${jsArg(v.plate || '')},${jsArg(v.name || 'Vehicle')})">${LB_PIN}<span>MAP</span></button></div>`;
+  }).join('') : `<div class="lb-item"><div class="lb-main"><b>None</b><small>NONE</small></div></div>`;
+  const tabs = [['Profile','statisticsTab'],['Jobs','jobs'],['Legal',null],['Illegal',null],['Collections','achievement']];
+  const tabsHtml = tabs.map(([l,v]) => v
+    ? `<button type="button" class="lb-tab ${v==='statisticsTab'?'on':''}" onclick="switchView('${v}')">${l}</button>`
+    : `<span class="lb-tab off">${l}</span>`).join('');
   return wrap('Statistics',
-    `<div class="hero-overview compact-stats xp-stats-layout">
-      <div class="profile-panel clean-profile">
-        <div class="avatar-ring">👤</div>
-        <div class="profile-meta">
-          <h2>${esc(p.name || 'Player')}</h2>
-          <div class="profile-id">Player ID #${visiblePlayerId(p.player_id || 0)}</div>
-          <p>${esc(p.job?.label || p.job?.name || 'Civilian')} • ${esc(p.job?.grade?.name || 'Citizen')}</p>
+    `<div class="lb-root">
+      <aside class="lb-side">
+        <div class="lb-eyebrow">CITIZEN RECORD</div>
+        <div class="lb-avatar"><span>${esc(initials)}</span></div>
+        <div class="lb-name">${esc(p.name || 'Player')}</div>
+        <div class="lb-sub">ID ${visiblePlayerId(p.player_id || 0)} · ${gender}</div>
+        <div class="lb-level"><b>${level}</b><span>LEVEL</span></div>
+        <div class="lb-points">${xp} points</div>
+        <div class="lb-bar"><i style="width:${xpPct}%"></i></div>
+        <div class="lb-next">${toNext} points to level ${level + 1}</div>
+        <div class="lb-eyebrow lb-org">ORGANIZATION</div>
+        <div class="lb-orgname">${esc(faction || 'None')}</div>
+        <div class="lb-kvs">
+          ${lbRow('Warnings', `${warnings} of 3`)}
+          ${lbRow('Spouse', esc(prof.spouse || 'Single'))}
+          ${lbRow('Fines', money(fines), fines > 0 ? 'bad' : '')}
+          ${lbRow('Business', esc(prof.business || 'None'))}
+          ${lbRow('Cash', money(p.cash || 0))}
+          ${lbRow('Bank', money(p.bank || 0))}
         </div>
-      </div>
-      <div class="xp-level-panel">
-        <div class="xp-level-left"><span>LEVEL</span><b>${level}</b></div>
-        <div class="xp-level-right">
-          <h2>Progress XP</h2>
-          <div class="xp-text"><span>${xp} / ${nextXp} XP</span><span>Total XP ${totalXp}</span></div>
-          <div class="xp-progress"><i style="width:${xpPct}%"></i></div>
-          <p>${xpPct}% progress to next level</p>
+      </aside>
+      <section class="lb-main-col">
+        <nav class="lb-tabs">${tabsHtml}</nav>
+        <div class="lb-head"><h2>Your <b>profile.</b></h2><span>PERSONAL OVERVIEW</span></div>
+        <div class="lb-strip">
+          <div><span>MEMBERSHIP</span><b>${prof.prime ? 'Prime active' : 'Prime inactive'}</b></div>
+          <div class="r"><span>CIVILIAN PACKAGE</span><b>${esc(prof.package || 'None')}</b></div>
         </div>
-      </div>
-    </div>
-    <div class="section-head"><h3>Player Information</h3><p>Core account and roleplay details</p></div>
-    <div class="stats-grid-premium clean-info-grid">${stats.map(s => `<div class="mini-stat"><div class="mini-ico">${s[2]}</div><div><span>${s[0]}</span><b>${s[1]}</b></div></div>`).join('')}</div>
-    <div class="section-head"><h3>Documents & Licences</h3><p>Your current licence status and expiry dates</p></div>
-    <div class="stats-grid-premium clean-info-grid licence-grid">${licenceHtml}</div>
-    <div class="section-head"><h3>My Properties <em class="count-chip">${ownedHouses.length}</em></h3><p>Houses you own. Mark a house to set its GPS location</p></div>
-    <div class="own-grid">${houseHtml}</div>
-    <div class="section-head"><h3>My Vehicles <em class="count-chip">${ownedVehicles.length}</em></h3><p>Your owned cars with number plates</p></div>
-    <div class="own-grid">${vehicleHtml}</div>
-    <div class="section-head"><h3>Job Progress XP</h3><p>Job level, completed jobs, earned money and XP progress</p></div>
-    <div class="job-xp-list">${jobHtml}</div>`);
+        <div class="lb-cols">
+          <div class="lb-col"><div class="lb-colhead"><b>Residencies</b><span>${pad2(ownedHouses.length)}</span></div><div class="lb-list">${resHtml}</div></div>
+          <div class="lb-col"><div class="lb-colhead"><b>Vehicles</b><span>${pad2(ownedVehicles.length)}</span></div><div class="lb-list">${vehHtml}</div></div>
+          <div class="lb-col"><div class="lb-colhead"><b>Permits</b><span>${pad2(permitDefs.length)}</span></div><div class="lb-list">${permitHtml}</div></div>
+        </div>
+        <div class="lb-foot">
+          <div><b>Prime: 1 removal per month</b><small>Active Prime required. Resets on the 1st.</small></div>
+          <button type="button" class="lb-btn" disabled>REMOVE 1 WARNING</button>
+        </div>
+      </section>
+    </div>`);
 }
+const LB_PIN = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
+function locateVehicleUI(plate, label){ post('locateVehicle', { plate, label }); }
 
 function storeDate(value){
   if(!value) return '—';
