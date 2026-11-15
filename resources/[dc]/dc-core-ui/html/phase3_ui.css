@@ -810,3 +810,25 @@ html,body{font-family:var(--pm-font)!important;color:var(--pm-text)}
 .lb-foot b{display:block;font-size:14px}.lb-foot small{color:#8a8a90;font-size:13px}
 .lb-btn{background:#0f0f11;border:1px solid #1f1f22;color:#55555a;font:700 13px 'Inter',Arial,sans-serif;padding:14px 18px;letter-spacing:.04em}
 @media (max-width:1200px){.lb-root{grid-template-columns:240px minmax(0,1fr);padding:20px}.lb-cols{grid-template-columns:1fr 1fr}}
+
+/* ===== Libra-style: full-screen flat frame ===== */
+#app .shell.lb-mode:not(.zz){left:0 !important;top:0 !important;width:100vw !important;height:100vh !important;grid-template-columns:1fr !important;border:0 !important;border-radius:0 !important;background:#0b0b0c !important;box-shadow:none !important;backdrop-filter:none !important}
+#app .shell.lb-mode:not(.zz):before{display:none !important}
+#app .shell.lb-mode:not(.zz) .sidebar{display:none !important}
+#app .shell.lb-mode:not(.zz) #content{padding:0 !important;overflow:hidden !important;background:#0b0b0c !important}
+.lb-root{grid-template-columns:300px minmax(0,1fr);grid-template-rows:auto 1fr auto;height:100vh;min-height:0;padding:0 3.75vw;box-sizing:border-box}
+.lb-top{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;height:98px;border-bottom:1px solid #1f1f22}
+.lb-brand{font-size:26px;font-weight:300;letter-spacing:-.01em}.lb-brand b{font-weight:800}
+.lb-topr{display:flex;align-items:center;gap:22px}
+.lb-close,.lb-menu{background:none;border:0;color:#f2f2f2;font:700 13px 'Inter',Arial,sans-serif;letter-spacing:.04em;cursor:pointer;display:flex;align-items:center;gap:8px;padding:0}
+.lb-menu{color:#8a8a90}.lb-menu:hover,.lb-close:hover{color:#ff9f1c}
+.lb-close kbd{background:#f2f2f2;color:#0b0b0c;font:800 11px 'Inter',Arial,sans-serif;padding:4px 7px;border-radius:2px}
+.lb-side{margin:36px 0 0;padding:0 36px 0 0;border-right:1px solid #1f1f22;overflow-y:auto;min-height:0}
+.lb-main-col{padding:36px 0 0 44px;min-height:0;overflow:hidden}
+.lb-bottom{grid-column:1 / -1;display:flex;justify-content:space-between;align-items:center;height:80px;font-size:12px;font-weight:700;color:#8a8a90;letter-spacing:.02em}
+.lb-tabs{padding-bottom:14px}
+.lb-tab.on{border:1px solid #ff9f1c;padding:6px 8px}
+.lb-tab.on:after{left:0;right:0;bottom:0}
+.lb-list{max-height:calc(100vh - 560px);min-height:200px}
+.lb-cols{padding-top:24px}
+.lb-foot{margin-top:14px}

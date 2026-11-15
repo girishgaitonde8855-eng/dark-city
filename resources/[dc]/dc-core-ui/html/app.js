@@ -707,8 +707,9 @@ function wrap(title, body, extra = ''){
   const shell = document.querySelector('.shell');
   const menuApp = document.getElementById('app');
   if (menuApp) menuApp.style.zoom = String(uiSettings.ui_scale / 100);
-  if (shell) shell.classList.remove('dc-home-mode','dc-spawn-mode');
+  if (shell) shell.classList.remove('dc-home-mode','dc-spawn-mode','lb-mode');
   shell.classList.toggle('flow-mode', !showSidebar());
+  shell.classList.toggle('lb-mode', state.view === 'statisticsTab');
   document.getElementById('nav').innerHTML = showSidebar() ? nav() : '';
   const p = state.data?.player || {};
   const content = document.getElementById('content');
@@ -1050,6 +1051,7 @@ function renderStatistics(p){
     : `<span class="lb-tab off">${l}</span>`).join('');
   return wrap('Statistics',
     `<div class="lb-root">
+      <header class="lb-top"><div class="lb-brand">DARK CITY <b>ROLEPLAY</b></div><div class="lb-topr"><button type="button" class="lb-menu" onclick="switchView('home')">MENU</button><button type="button" class="lb-close" onclick="closeUi()"><kbd>ESC</kbd> CLOSE</button></div></header>
       <aside class="lb-side">
         <div class="lb-eyebrow">CITIZEN RECORD</div>
         <div class="lb-avatar"><span>${esc(initials)}</span></div>
@@ -1087,6 +1089,7 @@ function renderStatistics(p){
           <button type="button" class="lb-btn" disabled>REMOVE 1 WARNING</button>
         </div>
       </section>
+      <footer class="lb-bottom"><span>DARK CITY · CITIZEN SERVICES</span><span>PASSPORT</span></footer>
     </div>`);
 }
 const LB_PIN = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>';
@@ -2045,7 +2048,7 @@ function renderSpawnSelect(){
   const menuApp=document.getElementById('app');
   if(menuApp) menuApp.style.zoom='1';
   if(shell){
-    shell.classList.remove('dc-home-mode','flow-mode');
+    shell.classList.remove('dc-home-mode','flow-mode','lb-mode');
     shell.classList.add('dc-spawn-mode');
   }
   if(navEl) navEl.innerHTML='';
