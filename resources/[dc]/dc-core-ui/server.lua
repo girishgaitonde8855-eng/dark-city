@@ -608,6 +608,9 @@ local function ownerValue(colType, playerId, citizenid)
     return citizenid
 end
 
+-- Houses hidden from the Statistics list (lowercase). Display only; the DB is untouched.
+local HiddenHouses = { ['dc_house_1'] = true, ['depotlot'] = true }
+
 local function getOwnedHouses(playerId, citizenid)
     local cols = tableColumns('dc_houses')
     if not cols then warnOnce('houses_table', 'table dc_houses not found, owned houses hidden'); return {} end
@@ -621,11 +624,17 @@ local function getOwnedHouses(playerId, citizenid)
     local rows = safeQuery(('SELECT * FROM `dc_houses` WHERE `%s` = ? ORDER BY `id` ASC LIMIT 50'):format(ownerCol), { value })
     local out = {}
     for _, r in ipairs(rows) do
+      local hidden = false
+      for _, f in ipairs({ r.label, r.name, r.house_key, r.key, r.location, r.street, r.address, r.interior }) do
+        if f ~= nil and HiddenHouses[tostring(f):lower()] then hidden = true break end
+      end
+      if not hidden then
         out[#out + 1] = {
             id = r.id, label = r.label or r.name or 'House', class = r.class or r.tier,
             location = r.location or r.street or r.address,
             x = tonumber(r.x), y = tonumber(r.y), z = tonumber(r.z)
         }
+      end
     end
     return out
 end
