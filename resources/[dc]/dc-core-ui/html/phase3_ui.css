@@ -718,3 +718,39 @@ html,body{font-family:var(--pm-font)!important;color:var(--pm-text)}
   .pm-pill.live i,.pm-hero-copy h1 em,.pm-feature{animation:none}
 }
 .pm-feature strong{align-self:flex-start}
+
+/* ---- Statistics: owned properties and vehicles ---- */
+.count-chip{
+  display:inline-block;margin-left:10px;padding:2px 11px;border-radius:999px;vertical-align:middle;
+  font-style:normal;font-size:13px;font-weight:800;letter-spacing:.5px;
+  background:linear-gradient(180deg,#ffc24d,#ff9f1c);color:#2a1700;
+  box-shadow:0 4px 12px rgba(255,159,28,.3);
+}
+.own-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:26px}
+.own-grid .premium-empty{grid-column:1 / -1}
+.own-card{
+  position:relative;display:flex;align-items:center;gap:14px;padding:15px 16px;min-height:84px;
+  border-radius:16px;border:1px solid rgba(255,255,255,.09);
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  box-shadow:0 10px 26px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.07);
+}
+.own-card:hover{border-color:rgba(255,209,102,.5)}
+.own-card .mini-ico{flex:0 0 auto}
+.own-main{flex:1 1 auto;min-width:0}
+.own-main span{display:block;font-size:10px;letter-spacing:2px;color:#8d8a93;font-weight:700}
+.own-main b{display:block;margin-top:2px;font-size:16px;font-weight:800;color:#f5f2ec;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.own-main small{display:block;margin-top:3px;font-size:12px;color:#c4c0b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.own-pin{
+  flex:0 0 auto;cursor:pointer;padding:8px 12px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.5px;
+  border:1px solid rgba(255,209,102,.5);color:#2a1700;background:linear-gradient(180deg,#ffc24d,#ff9f1c);
+  box-shadow:0 6px 16px rgba(255,159,28,.3);
+}
+.own-pin:hover{filter:brightness(1.1)}
+.plate-badge{
+  flex:0 0 auto;padding:6px 12px;border-radius:7px;text-align:center;
+  font:800 15px/1.1 "Courier New",Consolas,monospace;letter-spacing:2px;color:#14224d;
+  background:linear-gradient(180deg,#fbf7e6,#e4dcc0);border:2px solid #14224d;
+  box-shadow:0 4px 12px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.6);
+}
+.veh-state.in{color:#3ddc97}.veh-state.out{color:#ffc24d}.veh-state.bad{color:#ff5470}
+@media (max-width:1200px){.own-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -991,6 +991,28 @@ function renderStatistics(p){
       </div>
     </div>`;
   }).join('');
+  // Owned properties and vehicles (server sends owned_houses / owned_vehicles)
+  const ownedHouses = Array.isArray(state.data?.owned_houses) ? state.data.owned_houses : [];
+  const ownedVehicles = Array.isArray(state.data?.owned_vehicles) ? state.data.owned_vehicles : [];
+  const houseHtml = ownedHouses.length ? ownedHouses.map(h => {
+    const hasPos = Number.isFinite(Number(h.x)) && Number.isFinite(Number(h.y)) && h.x !== null && h.y !== null;
+    const meta = [h.location, h.class ? `Class ${h.class}` : ''].filter(Boolean).map(esc).join(' • ');
+    return `<div class="own-card">
+      <div class="mini-ico">🏠</div>
+      <div class="own-main"><span>HOUSE #${esc(h.id ?? '')}</span><b>${esc(h.label || 'House')}</b><small>${meta || '&nbsp;'}</small></div>
+      ${hasPos ? `<button type="button" class="own-pin" onclick="setWaypointUI(${Number(h.x)},${Number(h.y)},${jsArg(h.label || 'House')})">📍 Mark on Map</button>` : ''}
+    </div>`;
+  }).join('') : emptyPremium('🏠','No properties owned','Houses you buy will appear here with their map location.');
+  const vehStates = { 0:['Out','out'], 1:['Garaged','in'], 2:['Impounded','bad'] };
+  const vehicleHtml = ownedVehicles.length ? ownedVehicles.map(v => {
+    const st = vehStates[Number(v.state)];
+    return `<div class="own-card">
+      <div class="mini-ico">🚗</div>
+      <div class="own-main"><span>${esc(v.garage ? String(v.garage).toUpperCase() : 'VEHICLE')}</span><b>${esc(v.name || v.model || 'Vehicle')}</b>${st ? `<small class="veh-state ${st[1]}">${st[0]}</small>` : '<small>&nbsp;</small>'}</div>
+      <div class="plate-badge" title="Number plate">${esc(v.plate || '—')}</div>
+    </div>`;
+  }).join('') : emptyPremium('🚗','No vehicles owned','Vehicles you buy will appear here with their number plate.');
+
   return wrap('Statistics',
     `<div class="hero-overview compact-stats xp-stats-layout">
       <div class="profile-panel clean-profile">
@@ -1015,6 +1037,10 @@ function renderStatistics(p){
     <div class="stats-grid-premium clean-info-grid">${stats.map(s => `<div class="mini-stat"><div class="mini-ico">${s[2]}</div><div><span>${s[0]}</span><b>${s[1]}</b></div></div>`).join('')}</div>
     <div class="section-head"><h3>Documents & Licences</h3><p>Your current licence status and expiry dates</p></div>
     <div class="stats-grid-premium clean-info-grid licence-grid">${licenceHtml}</div>
+    <div class="section-head"><h3>My Properties <em class="count-chip">${ownedHouses.length}</em></h3><p>Houses you own. Mark a house to set its GPS location</p></div>
+    <div class="own-grid">${houseHtml}</div>
+    <div class="section-head"><h3>My Vehicles <em class="count-chip">${ownedVehicles.length}</em></h3><p>Your owned cars with number plates</p></div>
+    <div class="own-grid">${vehicleHtml}</div>
     <div class="section-head"><h3>Job Progress XP</h3><p>Job level, completed jobs, earned money and XP progress</p></div>
     <div class="job-xp-list">${jobHtml}</div>`);
 }

@@ -569,6 +569,106 @@ local function minimalBase(src, view)
     }
 end
 
+-- ---------------------------------------------------------------------------
+-- Statistics: houses and vehicles owned by the player
+-- The property/vehicle tables belong to other resources, so their owner/model
+-- columns are detected from information_schema instead of being hard-coded.
+-- ---------------------------------------------------------------------------
+local __ownedSchema, __ownedWarned = {}, {}
+
+local function tableColumns(tbl)
+    local hit = __ownedSchema[tbl]
+    if hit and (hit.cols or (GetGameTimer() - hit.at) < 60000) then return hit.cols end
+    local rows = safeQuery('SELECT COLUMN_NAME AS c, DATA_TYPE AS t FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?', { tbl })
+    local cols = {}
+    for _, r in ipairs(rows) do cols[tostring(r.c):lower()] = tostring(r.t):lower() end
+    if next(cols) == nil then cols = nil end
+    __ownedSchema[tbl] = { cols = cols, at = GetGameTimer() }
+    return cols
+end
+
+local function firstColumn(cols, candidates)
+    for _, name in ipairs(candidates) do
+        if cols[name] then return name, cols[name] end
+    end
+end
+
+local function warnOnce(key, msg)
+    if __ownedWarned[key] then return end
+    __ownedWarned[key] = true
+    print('[dc-core-ui] Statistics: '..msg)
+end
+
+local IntTypes = { int = true, bigint = true, smallint = true, mediumint = true, tinyint = true }
+
+-- Value to compare against an owner column: numeric columns hold the player id,
+-- text columns hold the citizenid.
+local function ownerValue(colType, playerId, citizenid)
+    if IntTypes[colType] then return tonumber(playerId) end
+    return citizenid
+end
+
+local function getOwnedHouses(playerId, citizenid)
+    local cols = tableColumns('dc_houses')
+    if not cols then warnOnce('houses_table', 'table dc_houses not found, owned houses hidden'); return {} end
+    local ownerCol, ownerType = firstColumn(cols, { 'owner_player_id', 'player_id', 'owner_id', 'owner_citizenid', 'citizenid', 'owner' })
+    if not ownerCol then
+        warnOnce('houses_owner', 'dc_houses has no owner column (columns: '..table.concat((function() local t = {} for k in pairs(cols) do t[#t+1] = k end table.sort(t) return t end)(), ', ')..')')
+        return {}
+    end
+    local value = ownerValue(ownerType, playerId, citizenid)
+    if value == nil or value == '' then return {} end
+    local rows = safeQuery(('SELECT * FROM `dc_houses` WHERE `%s` = ? ORDER BY `id` ASC LIMIT 50'):format(ownerCol), { value })
+    local out = {}
+    for _, r in ipairs(rows) do
+        out[#out + 1] = {
+            id = r.id, label = r.label or r.name or 'House', class = r.class or r.tier,
+            location = r.location or r.street or r.address,
+            x = tonumber(r.x), y = tonumber(r.y), z = tonumber(r.z)
+        }
+    end
+    return out
+end
+
+local function vehicleDisplayName(model)
+    model = tostring(model or '')
+    local shared = QBCore.Shared and QBCore.Shared.Vehicles and QBCore.Shared.Vehicles[model:lower()]
+    if shared then
+        local brand, name = shared.brand, shared.name
+        if brand and name and not tostring(name):lower():find(tostring(brand):lower(), 1, true) then return tostring(brand)..' '..tostring(name) end
+        return tostring(name or brand)
+    end
+    return model ~= '' and (model:sub(1, 1):upper()..model:sub(2)) or 'Vehicle'
+end
+
+local function getOwnedVehicles(playerId, citizenid)
+    for _, tbl in ipairs({ 'player_vehicles', 'dc_player_vehicles', 'owned_vehicles' }) do
+        local cols = tableColumns(tbl)
+        if cols and cols.plate then
+            local ownerCol, ownerType = firstColumn(cols, { 'citizenid', 'owner', 'owner_player_id', 'player_id', 'identifier' })
+            local modelCol = firstColumn(cols, { 'vehicle', 'model', 'name' })
+            if ownerCol and modelCol then
+                local value = ownerValue(ownerType, playerId, citizenid)
+                if value == nil or value == '' then return {} end
+                local rows = safeQuery(('SELECT * FROM `%s` WHERE `%s` = ? LIMIT 100'):format(tbl, ownerCol), { value })
+                local out = {}
+                for _, r in ipairs(rows) do
+                    local model = r[modelCol]
+                    out[#out + 1] = {
+                        name = vehicleDisplayName(model), model = tostring(model or ''),
+                        plate = (tostring(r.plate or ''):gsub('^%s+', ''):gsub('%s+$', '')),
+                        garage = r.garage, state = tonumber(r.state)
+                    }
+                end
+                table.sort(out, function(a, b) return a.name < b.name end)
+                return out
+            end
+        end
+    end
+    warnOnce('vehicles_table', 'no vehicle table found (tried player_vehicles, dc_player_vehicles, owned_vehicles), owned vehicles hidden')
+    return {}
+end
+
 QBCore.Functions.CreateCallback('dc-core-ui:server:GetData', function(src, cb, view)
     view = tostring(view or 'statisticsTab')
     local key = cacheKey(src, view)
@@ -823,6 +923,9 @@ QBCore.Functions.CreateCallback('dc-core-ui:server:GetData', function(src, cb, v
 
             -- Alias retained for any current/future Documents UI.
             base.documents = base.licences
+
+            base.owned_houses = getOwnedHouses(p.player_id, citizenid)
+            base.owned_vehicles = getOwnedVehicles(p.player_id, citizenid)
         end
 
         if view == 'dailyReward' then
